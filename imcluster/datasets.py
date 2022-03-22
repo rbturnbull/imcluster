@@ -20,6 +20,9 @@ class ImageDataset(Dataset):
     def __getitem__(self, idx):
         input_file = self.images[idx]
         im = Image.open(input_file)
+        if im.width < im.height:
+            im = im.rotate(90)
+
         image = self.transform(im)
         return image
 
