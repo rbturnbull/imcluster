@@ -11,6 +11,7 @@ Welcome to imcluster's documentation!
    :caption: Contents:
 
    cli
+   references
 
 Indices and tables
 ==================
