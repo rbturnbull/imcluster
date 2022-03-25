@@ -1,7 +1,7 @@
 import base64
 from io import BytesIO
 from PIL import Image
-
+from bokeh.palettes import Spectral6
 from bokeh.plotting import figure, output_file, show
 from rich.console import Console
 console = Console()
@@ -17,7 +17,7 @@ def generate_thumbnail(path):
     return base64.b64encode(buffered.getvalue()).decode('ascii')
 
 
-def plot(imcluster_io:ImclusterIO, output_html=None, width=1200, height=700, size=12, color="navy", alpha=0.5):
+def plot(imcluster_io:ImclusterIO, output_html=None, width=1200, height=700, size=12, alpha=0.5, force:bool=False):
     """
     Plot the principle components with tooltips showing the images.
     """
@@ -29,14 +29,21 @@ def plot(imcluster_io:ImclusterIO, output_html=None, width=1200, height=700, siz
     TOOLTIPS = """
     <div>
         <p>@filenames</p>
+        <p>Cluster: @cluster</p>
         <img src="data:image/png;base64, @thumbnail{safe}" alt="Thumbnail" />
     </div>
     """
 
     imcluster_io.df['path'] = [str(x) for x in imcluster_io.images]
-    thumbnails = imcluster_io.df.apply(lambda row: generate_thumbnail(row['path']), axis = 1)
-    imcluster_io.df['thumbnail'] = thumbnails
+    if not imcluster_io.has_column("thumbnail") or force:
+        imcluster_io.save_column(
+            'thumbnail', 
+            imcluster_io.df.apply(lambda row: generate_thumbnail(row['path']), axis = 1)
+        )
+
+    cmap = Spectral6
+    imcluster_io.df['color'] = imcluster_io.df.apply(lambda row: cmap[row['cluster'] % len(cmap)], axis = 1)
 
     p = figure(width=width, height=height, tooltips=TOOLTIPS)
-    p.circle("pca0", "pca1", source=imcluster_io.df, size=size, color=color, alpha=alpha)
+    p.circle("pca0", "pca1", source=imcluster_io.df, size=size, color='color', alpha=alpha)
     show(p)

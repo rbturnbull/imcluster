@@ -2,7 +2,7 @@ import numpy as np
 from rich.console import Console
 console = Console()
 from .io import ImclusterIO
-
+from rich.progress import track
 
 def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=False):
     """
@@ -45,7 +45,7 @@ def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=
                 image = self.transform(im)
                 return image   
 
-        console.print("Generating feature vectors")
+        console.print("Setting up dataset")
         dataset = ImageDataset(imcluster_io.images)
         dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -53,7 +53,9 @@ def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=
         model = model_class(pretrained=True)
 
         with torch.no_grad():
-            results = [model(batch) for batch in dataloader]
+            results = []
+            for batch in track(dataloader, description="Generating feature vectors:"):
+                results.append(model(batch))
         feature_vectors = torch.cat(results, dim=0).cpu().detach().numpy()
 
         imcluster_io.save_column(column_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])])

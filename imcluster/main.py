@@ -19,9 +19,13 @@ def main(
     inputs:List[Path],
     output_df:Path,
     output_html:Path = None,
+    model:str = "vgg19",
     max_images:int = None,
     algorithm:str = "SPECTRAL",
     force:bool = False,
+    force_features:bool = False,
+    force_pca:bool = False,
+    force_cluster:bool = False,
 ): 
     # find images
     images = []
@@ -38,10 +42,10 @@ def main(
         images = images[:max_images]
 
     imcluster_io = ImclusterIO(images, output_df)
-    
-    feature_vectors = build_features(imcluster_io, force=force)
-    fit_pca(imcluster_io, feature_vectors, force=force)
-    cluster(imcluster_io, feature_vectors, algorithm=algorithm, force=force)
+
+    feature_vectors = build_features(imcluster_io, model_name=model, force=force or force_features)
+    fit_pca(imcluster_io, feature_vectors, force=force or force_features or force_pca)
+    cluster(imcluster_io, feature_vectors, algorithm=algorithm, force=force or force_features or force_cluster)
     plot(imcluster_io, output_html)
 
 
