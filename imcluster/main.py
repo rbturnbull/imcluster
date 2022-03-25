@@ -37,9 +37,8 @@ def main(
     if max_images and len(images) > max_images:
         images = images[:max_images]
 
-    pdb.set_trace()
-
     imcluster_io = ImclusterIO(images, output_df)
+    
     feature_vectors = build_features(imcluster_io, force=force)
     fit_pca(imcluster_io, feature_vectors, force=force)
     cluster(imcluster_io, feature_vectors, algorithm=algorithm, force=force)

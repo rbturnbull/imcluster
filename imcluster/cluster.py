@@ -18,3 +18,5 @@ def cluster(imcluster_io:ImclusterIO, feature_vectors, algorithm="spectral", for
         clustering.fit(feature_vectors)
 
         imcluster_io.save_column('cluster', clustering.labels_)
+    else:
+        console.print("Using precomputed clusters")
