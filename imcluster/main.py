@@ -4,7 +4,7 @@ from typing import List
 from pathlib import Path
 
 from .io import ImclusterIO
-from .features import build_features
+from .features import build_features, TorchvisionModelName
 from .pca import fit_pca
 from .cluster import cluster
 from .plotting import plot
@@ -19,7 +19,7 @@ def main(
     inputs:List[Path],
     output_df:Path,
     output_html:Path = None,
-    model:str = "vgg19",
+    model:TorchvisionModelName = typer.Option("vgg19", help="The name of the torchvision model to use (see https://pytorch.org/vision/stable/models.html#)."),
     max_images:int = None,
     algorithm:str = "SPECTRAL",
     force:bool = False,

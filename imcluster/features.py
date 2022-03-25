@@ -1,10 +1,42 @@
+import types
+import enum
+from typing import get_type_hints, List
 import numpy as np
+from PIL import Image
+import torch
+from torchvision import models
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
+from torchvision import transforms
+from torch.nn.functional import normalize
+from torch import nn
+from rich.progress import track
 from rich.console import Console
 console = Console()
-from .io import ImclusterIO
-from rich.progress import track
 
-def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=False):
+from .io import ImclusterIO
+
+def torchvision_model_choices() -> List[str]:
+    """
+    Returns a list of function names in torchvision.models which can produce torch modules.
+    """
+    model_choices = []
+    for item in dir(models):
+        obj = getattr(models, item)
+
+        # Only accept functions
+        if isinstance(obj, types.FunctionType):
+
+            # Only accept if the return value is a pytorch module
+            hints = get_type_hints(obj)
+            return_value = hints.get('return', "")
+            if nn.Module in return_value.mro():
+                model_choices.append(item)
+    return model_choices
+
+TorchvisionModelName = enum.Enum('TorchvisionModelName', {model_name:model_name for model_name in torchvision_model_choices()})
+
+def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vgg19", force:bool=False):
     """
     Builds a list of feature vectors for all the images from a pretrained pytorch model.
 
@@ -12,13 +44,6 @@ def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=
     """
     column_name = 'features'
     if not imcluster_io.has_column(column_name) or force:
-        import torch
-        from torchvision import models
-        from torch.utils.data import DataLoader
-        from torch.utils.data import Dataset
-        from torchvision import transforms
-        from PIL import Image
-
         class ImageDataset(Dataset):
             def __init__(self, images):
                 self.images = images
@@ -47,16 +72,25 @@ def build_features(imcluster_io:ImclusterIO, model_name:str="vgg19", force:bool=
 
         console.print("Setting up dataset")
         dataset = ImageDataset(imcluster_io.images)
+
         dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-        model_class = getattr(models, model_name)
+        # Convert the enum value to its value if necessary
+        if isinstance(model_name, TorchvisionModelName):
+            model_name = model_name.value
+
+        model_class = getattr(models, model_name, "")
+        if not model_class:
+            raise Exception(f"torchvision does not have model named '{model_name}'")
         model = model_class(pretrained=True)
 
         with torch.no_grad():
             results = []
             for batch in track(dataloader, description="Generating feature vectors:"):
                 results.append(model(batch))
-        feature_vectors = torch.cat(results, dim=0).cpu().detach().numpy()
+        feature_vectors = torch.cat(results, dim=0)
+        feature_vectors = normalize(feature_vectors, dim=0)
+        feature_vectors = feature_vectors.cpu().detach().numpy()
 
         imcluster_io.save_column(column_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])])
     else:

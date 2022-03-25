@@ -11,7 +11,7 @@ def cluster(imcluster_io:ImclusterIO, feature_vectors, algorithm="SPECTRAL", for
 
         algorithm = algorithm.upper()
         if algorithm == "SPECTRAL":
-            clustering = SpectralClustering(n_clusters=2)
+            clustering = SpectralClustering(n_clusters=6)
         elif algorithm == "DBSCAN":
             clustering = DBSCAN(eps=0.5, min_samples=2)
         else:
