@@ -10,7 +10,7 @@ Welcome to imcluster's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   cli
 
 Indices and tables
 ==================

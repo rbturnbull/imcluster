@@ -40,6 +40,7 @@ extensions = [
     "sphinx_copybutton",
     'sphinxcontrib.bibtex',
     "myst_parser",
+    "sphinx_click",
 ]
 
 bibtex_bibfiles = ['refs.bib']
