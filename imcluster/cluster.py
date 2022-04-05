@@ -5,13 +5,13 @@ console = Console()
 
 from .io import ImclusterIO
 
-def cluster(imcluster_io:ImclusterIO, feature_vectors, algorithm="SPECTRAL", force:bool=False):
+def cluster(imcluster_io:ImclusterIO, feature_vectors, algorithm="SPECTRAL", n_clusters:int=20, force:bool=False):
     if not imcluster_io.has_column('cluster') or force:
         console.print("Clustering")
 
         algorithm = algorithm.upper()
         if algorithm == "SPECTRAL":
-            clustering = SpectralClustering(n_clusters=6)
+            clustering = SpectralClustering(n_clusters=n_clusters)
         elif algorithm == "DBSCAN":
             clustering = DBSCAN(eps=0.5, min_samples=2)
         else:

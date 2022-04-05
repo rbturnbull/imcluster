@@ -22,6 +22,7 @@ def main(
     model:TorchvisionModelName = typer.Option("vgg19", help="The name of the torchvision model to use (see https://pytorch.org/vision/stable/models.html#)."),
     max_images:int = None,
     algorithm:str = "SPECTRAL",
+    n_clusters:int = 20,
     force:bool = False,
     force_features:bool = False,
     force_pca:bool = False,
@@ -45,7 +46,7 @@ def main(
 
     feature_vectors = build_features(imcluster_io, model_name=model, force=force or force_features)
     fit_pca(imcluster_io, feature_vectors, force=force or force_features or force_pca)
-    cluster(imcluster_io, feature_vectors, algorithm=algorithm, force=force or force_features or force_cluster)
+    cluster(imcluster_io, feature_vectors, algorithm=algorithm, n_clusters=n_clusters, force=force or force_features or force_cluster)
     plot(imcluster_io, output_html)
 
 

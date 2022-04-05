@@ -40,10 +40,14 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
     """
     Builds a list of feature vectors for all the images from a pretrained pytorch model.
 
-    Saves results into a column named 'features'.
+    Saves results into a column with the same name as the torchvision model.
     """
-    column_name = 'features'
-    if not imcluster_io.has_column(column_name) or force:
+    # Convert the enum value to its value if necessary
+    if isinstance(model_name, TorchvisionModelName):
+        model_name = model_name.value
+    model_name = str(model_name)
+
+    if not imcluster_io.has_column(model_name) or force:
         class ImageDataset(Dataset):
             def __init__(self, images):
                 self.images = images
@@ -75,10 +79,6 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
 
         dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
-        # Convert the enum value to its value if necessary
-        if isinstance(model_name, TorchvisionModelName):
-            model_name = model_name.value
-
         model_class = getattr(models, model_name, "")
         if not model_class:
             raise Exception(f"torchvision does not have model named '{model_name}'")
@@ -92,9 +92,9 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
         feature_vectors = normalize(feature_vectors, dim=0)
         feature_vectors = feature_vectors.cpu().detach().numpy()
 
-        imcluster_io.save_column(column_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])])
+        imcluster_io.save_column(model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])])
     else:
         console.print("Using precomputed feature vectors")
-        feature_vectors = np.array(imcluster_io.get_column(column_name).to_list())
+        feature_vectors = np.array(imcluster_io.get_column(model_name).to_list())
 
     return feature_vectors
