@@ -12,9 +12,11 @@ from torch.nn.functional import normalize
 from torch import nn
 from rich.progress import track
 from rich.console import Console
+
 console = Console()
 
 from .io import ImclusterIO
+
 
 def torchvision_model_choices() -> List[str]:
     """
@@ -29,14 +31,23 @@ def torchvision_model_choices() -> List[str]:
 
             # Only accept if the return value is a pytorch module
             hints = get_type_hints(obj)
-            return_value = hints.get('return', "")
+            return_value = hints.get("return", "")
             if nn.Module in return_value.mro():
                 model_choices.append(item)
     return model_choices
 
-TorchvisionModelName = enum.Enum('TorchvisionModelName', {model_name:model_name for model_name in torchvision_model_choices()})
 
-def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vgg19", force:bool=False):
+TorchvisionModelName = enum.Enum(
+    "TorchvisionModelName",
+    {model_name: model_name for model_name in torchvision_model_choices()},
+)
+
+
+def build_features(
+    imcluster_io: ImclusterIO,
+    model_name: TorchvisionModelName = "vgg19",
+    force: bool = False,
+):
     """
     Builds a list of feature vectors for all the images from a pretrained pytorch model.
 
@@ -46,19 +57,23 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
     if isinstance(model_name, TorchvisionModelName):
         model_name = model_name.value
     model_name = str(model_name)
-
+    print(imcluster_io.get_all_columns())
     if not imcluster_io.has_column(model_name) or force:
+        # if False:
+
         class ImageDataset(Dataset):
             def __init__(self, images):
                 self.images = images
                 # See note on normalization at https://pytorch.org/vision/stable/models.html
-                self.transform = transforms.Compose([
-                    transforms.ToTensor(),
-                    transforms.Normalize(
-                        mean=[0.485, 0.456, 0.406],
-                        std=[0.229, 0.224, 0.225],
-                    ),
-                ])
+                self.transform = transforms.Compose(
+                    [
+                        transforms.ToTensor(),
+                        transforms.Normalize(
+                            mean=[0.485, 0.456, 0.406],
+                            std=[0.229, 0.224, 0.225],
+                        ),
+                    ]
+                )
 
             def __len__(self):
                 return len(self.images)
@@ -66,13 +81,13 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
             def __getitem__(self, idx):
                 input_file = self.images[idx]
                 im = Image.open(input_file)
-                
+
                 # enforce landscape rotation
                 if im.width < im.height:
                     im = im.rotate(90)
 
                 image = self.transform(im)
-                return image   
+                return image
 
         console.print("Setting up dataset")
         dataset = ImageDataset(imcluster_io.images)
@@ -92,9 +107,12 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
         feature_vectors = normalize(feature_vectors, dim=0)
         feature_vectors = feature_vectors.cpu().detach().numpy()
 
-        imcluster_io.save_column(model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])])
+        imcluster_io.save_column(
+            model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])]
+        )
     else:
         console.print("Using precomputed feature vectors")
+
         feature_vectors = np.array(imcluster_io.get_column(model_name).to_list())
 
     return feature_vectors

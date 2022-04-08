@@ -2,4 +2,4 @@ images/*
 *.html
 *.parquet
 paper.pdf
-
+outputs/*
