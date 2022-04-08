@@ -3,3 +3,4 @@ images/*
 *.parquet
 paper.pdf
 outputs/*
+__pycache__/

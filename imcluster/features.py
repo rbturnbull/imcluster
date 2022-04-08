@@ -104,7 +104,7 @@ def build_features(
             for batch in track(dataloader, description="Generating feature vectors:"):
                 results.append(model(batch))
         feature_vectors = torch.cat(results, dim=0)
-        feature_vectors = normalize(feature_vectors, dim=0)
+        # feature_vectors = normalize(feature_vectors, dim=0)
         feature_vectors = feature_vectors.cpu().detach().numpy()
 
         imcluster_io.save_column(

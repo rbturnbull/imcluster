@@ -14,8 +14,8 @@ def write_html(imcluster_io: ImclusterIO, output_html=None, force: bool = False)
         output_html = "output-clusters.html"
 
     data = defaultdict(list)
-    df = imcluster_io.df.sort_values("cluster")
-    clusters = df["cluster"]
+    df = imcluster_io.df.sort_values("spectral_cluster")
+    clusters = df["spectral_cluster"]
     thumbnails = df["thumbnail"]
     filenames = df["filenames"]
     for filename, cluster, thumbnail in zip(filenames, clusters, thumbnails):

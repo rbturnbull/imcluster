@@ -22,6 +22,7 @@ def cluster(
         if not imcluster_io.has_column("spectral_cluster") or force:
             console.print("spectral clustering")
             clustering = SpectralClustering(n_clusters=n_clusters)
+            # scaled_features = StandardScaler().fit_transform(feature_vectors)
             clustering.fit(feature_vectors)
             imcluster_io.save_column("spectral_cluster", clustering.labels_)
         else:
