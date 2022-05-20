@@ -108,12 +108,8 @@ def build_features(
             result = torch.flatten(img2vec.get_vec(im, tensor=True), start_dim=1)
             results.append(result)
         feature_vectors = torch.cat(results, dim=0)
-<<<<<<< HEAD
         # print(feature_vectors.size())
         feature_vectors = normalize(feature_vectors, dim=0)
-=======
-        # feature_vectors = normalize(feature_vectors, dim=0)
->>>>>>> 0372ab6792bb4140914070836f2258052d8cac74
         feature_vectors = feature_vectors.cpu().detach().numpy()
 
         imcluster_io.save_column(
