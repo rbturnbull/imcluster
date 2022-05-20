@@ -12,6 +12,8 @@ from torch.nn.functional import normalize
 from torch import nn
 from rich.progress import track
 from rich.console import Console
+from img2vec_pytorch import Img2Vec
+
 console = Console()
 
 from .io import ImclusterIO
@@ -36,7 +38,7 @@ def torchvision_model_choices() -> List[str]:
 
 TorchvisionModelName = enum.Enum('TorchvisionModelName', {model_name:model_name for model_name in torchvision_model_choices()})
 
-def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vgg19", force:bool=False):
+def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vgg19", force:bool=False, batch_size=1):
     """
     Builds a list of feature vectors for all the images from a pretrained pytorch model.
 
@@ -46,6 +48,8 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
     if isinstance(model_name, TorchvisionModelName):
         model_name = model_name.value
     model_name = str(model_name)
+
+    img_size = 224 # The minimum size for torchvision (https://pytorch.org/vision/stable/models.html)
 
     if not imcluster_io.has_column(model_name) or force:
         class ImageDataset(Dataset):
@@ -71,24 +75,35 @@ def build_features(imcluster_io:ImclusterIO, model_name:TorchvisionModelName="vg
                 if im.width < im.height:
                     im = im.rotate(90)
 
+                im = im.resize( (img_size,img_size) )
+
                 image = self.transform(im)
-                return image   
+                return im   
 
         console.print("Setting up dataset")
         dataset = ImageDataset(imcluster_io.images)
 
-        dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
         model_class = getattr(models, model_name, "")
         if not model_class:
             raise Exception(f"torchvision does not have model named '{model_name}'")
         model = model_class(pretrained=True)
+        img2vec = Img2Vec(cuda=False)
 
         with torch.no_grad():
             results = []
-            for batch in track(dataloader, description="Generating feature vectors:"):
-                results.append(model(batch))
+            for path in track(imcluster_io.images, description="Generating feature vectors:"):
+                im = Image.open(path)
+                
+                # enforce landscape rotation
+                if im.width < im.height:
+                    im = im.rotate(90)
+
+                result = torch.flatten(img2vec.get_vec(im, tensor=True), start_dim=1)
+                results.append(result)
         feature_vectors = torch.cat(results, dim=0)
+        # print(feature_vectors.size())
         feature_vectors = normalize(feature_vectors, dim=0)
         feature_vectors = feature_vectors.cpu().detach().numpy()
 
