@@ -3,12 +3,9 @@ from collections import defaultdict
 from .io import ImclusterIO
 
 
-def write_html(imcluster_io:ImclusterIO, output_html=None, force:bool=False):
+def write_html(imcluster_io: ImclusterIO, output_html=None, force: bool = False):
 
-    env = Environment(
-        loader=PackageLoader("imcluster"),
-        autoescape=select_autoescape()
-    )
+    env = Environment(loader=PackageLoader(__package__), autoescape=select_autoescape())
 
     template = env.get_template("clusters.html")
     # template = env.get_template("vtab.html")
@@ -17,8 +14,8 @@ def write_html(imcluster_io:ImclusterIO, output_html=None, force:bool=False):
         output_html = "output-clusters.html"
 
     data = defaultdict(list)
-    df = imcluster_io.df.sort_values("cluster")
-    clusters = df["cluster"]
+    df = imcluster_io.df.sort_values("spectral_cluster")
+    clusters = df["spectral_cluster"]
     thumbnails = df["thumbnail"]
     filenames = df["filenames"]
     for filename, cluster, thumbnail in zip(filenames, clusters, thumbnails):
@@ -26,5 +23,5 @@ def write_html(imcluster_io:ImclusterIO, output_html=None, force:bool=False):
 
     result = template.render(data=data)
 
-    with open(output_html, 'w') as f:
+    with open(output_html, "w") as f:
         f.write(result)

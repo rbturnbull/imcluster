@@ -1,7 +1,8 @@
 from pathlib import Path
 import pandas as pd
 
-class ImclusterIO():
+
+class ImclusterIO:
     def __init__(self, images, output):
         self.images = images
         self.output = Path(output)
@@ -15,7 +16,10 @@ class ImclusterIO():
         self.df = df
 
     def has_column(self, column_name) -> bool:
-        return column_name in self.df
+        return column_name in self.df.columns
+
+    def get_all_columns(self) -> list:
+        return self.df.columns.tolist()
 
     def save(self):
         self.df.to_parquet(self.output, engine="pyarrow")
