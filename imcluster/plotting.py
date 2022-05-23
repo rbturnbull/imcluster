@@ -51,6 +51,7 @@ def plot(
             imcluster_io.df.apply(lambda row: generate_thumbnail(row["path"]), axis=1),
         )
 
+    return
     cmap = Spectral6
     imcluster_io.df["color"] = imcluster_io.df.apply(
         lambda row: cmap[row["dbscan_cluster"] % len(cmap)], axis=1

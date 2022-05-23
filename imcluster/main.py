@@ -65,5 +65,5 @@ def main(
     # save_clusters(
     # imcluster_io=imcluster_io, output_dir=output_path, algorithm=algorithm
     # )
-    # plot(imcluster_io, output_html)
+    plot(imcluster_io, output_html)
     write_html(imcluster_io)
