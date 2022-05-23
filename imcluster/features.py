@@ -62,53 +62,20 @@ def build_features(
     img_size = 224 # The minimum size for torchvision (https://pytorch.org/vision/stable/models.html)
 
     if not imcluster_io.has_column(model_name) or force:
-        # if False:
-
-        class ImageDataset(Dataset):
-            def __init__(self, images):
-                self.images = images
-                # See note on normalization at https://pytorch.org/vision/stable/models.html
-                self.transform = transforms.Compose(
-                    [
-                        transforms.ToTensor(),
-                        transforms.Normalize(
-                            mean=[0.485, 0.456, 0.406],
-                            std=[0.229, 0.224, 0.225],
-                        ),
-                    ]
-                )
-
-            def __len__(self):
-                return len(self.images)
-
-            def __getitem__(self, idx):
-                input_file = self.images[idx]
-                im = Image.open(input_file)
-
-                # enforce landscape rotation
-                if im.width < im.height:
-                    im = im.rotate(90)
-
-                im = im.resize( (img_size,img_size) )
-
-                image = self.transform(im)
-                return image
-
         console.print("Setting up dataset")
         img2vec = Img2Vec(cuda=False)
-
         results = []
         for path in track(imcluster_io.images, description="Generating feature vectors:"):
             im = Image.open(path)
             
-            # enforce landscape rotation
+            # HACK
+            # enforce landscape rotation 
             if im.width < im.height:
                 im = im.rotate(90)
 
             result = torch.flatten(img2vec.get_vec(im, tensor=True), start_dim=1)
             results.append(result)
         feature_vectors = torch.cat(results, dim=0)
-        # print(feature_vectors.size())
         feature_vectors = normalize(feature_vectors, dim=0)
         feature_vectors = feature_vectors.cpu().detach().numpy()
 

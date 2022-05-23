@@ -34,22 +34,7 @@ def main(
     force_pca:bool = False,
     force_cluster:bool = False,
 ): 
-    # find images
-    images = []
-    for i in inputs:
-        if i.is_dir():
-            # TODO search directory
-            continue
-        else:
-            # If it is a single file then just add to the list
-            images.append(i)
-
-    # truncate list of images if the user sets the maximum allowed
-    if max_images and len(images) > max_images:
-        images = images[:max_images]
-
-    imcluster_io = ImclusterIO(images, output_df)
-    print(imcluster_io.get_all_columns())
+    imcluster_io = ImclusterIO(inputs, output_df, max_images=max_images)
     feature_vectors = build_features(
         imcluster_io, model_name=model, force=force or force_features
     )
