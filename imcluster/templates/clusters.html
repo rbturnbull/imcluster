@@ -33,7 +33,7 @@
                                  aria-labelledby="v-pills-tab-{{ key }}">
                                 <h2>Cluster {{ key }}</h2>
                                 {% for item in items %}
-                                    <img src="data:image/png;base64, {{item.thumbnail}}" alt="Thumbnail" width="100px" data-toggle="tooltip" data-html="true" data-placement="bottom" title="{{item.filename}}"/>
+                                    <img src="data:image/png;base64, {{item.thumbnail}}" alt="Thumbnail" data-toggle="tooltip" data-html="true" data-placement="bottom" title="{{item.filename}}"/>
                                 {% endfor %}
                             </div>
                         {% endfor %}

@@ -29,10 +29,13 @@ def main(
     algorithm:str = "SPECTRAL",
     n_clusters:int = 20,
     batch_size:int = 1,
+    thumbnail_width:int = 256,
+    thumbnail_height:int = 256,
     force:bool = False,
     force_features:bool = False,
     force_pca:bool = False,
     force_cluster:bool = False,
+    force_thumbnails:bool = False,
 ): 
     imcluster_io = ImclusterIO(inputs, output_df, max_images=max_images)
     feature_vectors = build_features(
@@ -50,5 +53,5 @@ def main(
     # save_clusters(
     # imcluster_io=imcluster_io, output_dir=output_path, algorithm=algorithm
     # )
-    plot(imcluster_io, output_html)
+    plot(imcluster_io, output_html, thumbnail_height=thumbnail_height, thumbnail_width=thumbnail_width, force_thumbnails=force_thumbnails)
     write_html(imcluster_io)

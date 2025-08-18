@@ -10,9 +10,9 @@ console = Console()
 from .io import ImclusterIO
 
 
-def generate_thumbnail(path):
+def generate_thumbnail(path, width, height):
     im = Image.open(path)
-    size = 256, 256
+    size = width, height
     im.thumbnail(size, Image.ANTIALIAS)
     buffered = BytesIO()
     im.save(buffered, format="JPEG")
@@ -26,7 +26,10 @@ def plot(
     height=700,
     size=12,
     alpha=0.5,
+    thumbnail_width:int=256,
+    thumbnail_height:int=256,
     force: bool = False,
+    force_thumbnails:bool = False,
 ):
     """
     Plot the principle components with tooltips showing the images.
@@ -45,10 +48,11 @@ def plot(
     """
 
     imcluster_io.df["path"] = [str(x) for x in imcluster_io.images]
-    if not imcluster_io.has_column("thumbnail") or force:
+    if not imcluster_io.has_column("thumbnail") or force or force_thumbnails:
+        print(f"Generating thumbnails within box ({thumbnail_width}x{thumbnail_height})")
         imcluster_io.save_column(
             "thumbnail",
-            imcluster_io.df.apply(lambda row: generate_thumbnail(row["path"]), axis=1),
+            imcluster_io.df.apply(lambda row: generate_thumbnail(row["path"], thumbnail_width, thumbnail_height), axis=1),
         )
 
     return
