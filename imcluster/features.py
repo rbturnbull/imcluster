@@ -8,45 +8,48 @@ from torchvision import models
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision import transforms
+from transformers import pipeline
+from transformers.image_utils import load_image
+
 from torch.nn.functional import normalize
 from torch import nn
 from rich.progress import track
 from rich.console import Console
-from img2vec_pytorch import Img2Vec
+# from img2vec_pytorch import Img2Vec
 
 console = Console()
 
 from .io import ImclusterIO
 
 
-def torchvision_model_choices() -> List[str]:
-    """
-    Returns a list of function names in torchvision.models which can produce torch modules.
-    """
-    model_choices = []
-    for item in dir(models):
-        obj = getattr(models, item)
+# def torchvision_model_choices() -> List[str]:
+#     """
+#     Returns a list of function names in torchvision.models which can produce torch modules.
+#     """
+#     model_choices = []
+#     for item in dir(models):
+#         obj = getattr(models, item)
 
-        # Only accept functions
-        if isinstance(obj, types.FunctionType):
+#         # Only accept functions
+#         if isinstance(obj, types.FunctionType):
 
-            # Only accept if the return value is a pytorch module
-            hints = get_type_hints(obj)
-            return_value = hints.get("return", "")
-            if nn.Module in return_value.mro():
-                model_choices.append(item)
-    return model_choices
+#             # Only accept if the return value is a pytorch module
+#             hints = get_type_hints(obj)
+#             return_value = hints.get("return", "")
+#             if nn.Module in return_value.mro():
+#                 model_choices.append(item)
+#     return model_choices
 
 
-TorchvisionModelName = enum.Enum(
-    "TorchvisionModelName",
-    {model_name: model_name for model_name in torchvision_model_choices()},
-)
+# TorchvisionModelName = enum.Enum(
+#     "TorchvisionModelName",
+#     {model_name: model_name for model_name in torchvision_model_choices()},
+# )
 
 
 def build_features(
     imcluster_io: ImclusterIO,
-    model_name: TorchvisionModelName = "vgg19",
+    model_name: str = "vgg19",
     force: bool = False,
 ):
     """
@@ -55,25 +58,31 @@ def build_features(
     Saves results into a column with the same name as the torchvision model.
     """
     # Convert the enum value to its value if necessary
-    if isinstance(model_name, TorchvisionModelName):
-        model_name = model_name.value
+    # if isinstance(model_name, TorchvisionModelName):
+    #     model_name = model_name.value
     model_name = str(model_name)
 
     img_size = 224 # The minimum size for torchvision (https://pytorch.org/vision/stable/models.html)
 
     if not imcluster_io.has_column(model_name) or force:
         console.print("Setting up dataset")
-        img2vec = Img2Vec(cuda=False)
+        feature_extractor = pipeline(
+            model="facebook/dinov3-convnext-tiny-pretrain-lvd1689m",
+            task="image-feature-extraction", 
+        )
+
         results = []
         for path in track(imcluster_io.images, description="Generating feature vectors:"):
-            im = Image.open(path)
+            im = load_image(path)
             
             # HACK
             # enforce landscape rotation 
             if im.width < im.height:
                 im = im.rotate(90)
 
-            result = torch.flatten(img2vec.get_vec(im, tensor=True), start_dim=1)
+            features = feature_extractor(im)
+
+            result = torch.flatten(features, start_dim=1)
             results.append(result)
         feature_vectors = torch.cat(results, dim=0)
         feature_vectors = normalize(feature_vectors, dim=0)
