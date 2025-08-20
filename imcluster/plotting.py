@@ -13,7 +13,7 @@ from .io import ImclusterIO
 def generate_thumbnail(path, width, height):
     im = Image.open(path)
     size = width, height
-    im.thumbnail(size, Image.ANTIALIAS)
+    im.thumbnail(size, Image.Resampling.LANCZOS)
     buffered = BytesIO()
     im.save(buffered, format="JPEG")
     return base64.b64encode(buffered.getvalue()).decode("ascii")

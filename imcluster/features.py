@@ -73,7 +73,8 @@ def build_features(
 
         results = []
         for path in track(imcluster_io.images, description="Generating feature vectors:"):
-            im = load_image(path)
+        # for path in imcluster_io.images:
+            im = Image.open(path)
             
             # HACK
             # enforce landscape rotation 
@@ -81,12 +82,12 @@ def build_features(
                 im = im.rotate(90)
 
             features = feature_extractor(im)
+            tokens = np.array(features[0])
+            result = tokens.mean(axis=0)
 
-            result = torch.flatten(features, start_dim=1)
             results.append(result)
-        feature_vectors = torch.cat(results, dim=0)
-        feature_vectors = normalize(feature_vectors, dim=0)
-        feature_vectors = feature_vectors.cpu().detach().numpy()
+        feature_vectors = np.vstack(results)  # stack into shape (n_images, dim)
+        feature_vectors /= np.linalg.norm(feature_vectors, axis=1, keepdims=True)  # row-wise normalization
 
         imcluster_io.save_column(
             model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])]
