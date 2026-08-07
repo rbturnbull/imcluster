@@ -4,3 +4,4 @@ images/*
 paper.pdf
 outputs/*
 __pycache__/
+dino_unet.py
