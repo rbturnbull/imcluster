@@ -2,8 +2,20 @@
    :alt: imcluster
    :align: center
 
-``imcluster`` groups image collections using normalized features from pretrained
-vision models. It produces a reusable Parquet cache and a self-contained HTML
+|docs| |tests| |pypi|
+
+.. |docs| image:: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml/badge.svg
+   :alt: Documentation build status
+   :target: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml
+.. |tests| image:: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml/badge.svg
+   :alt: Test suite status
+   :target: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml
+.. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg
+   :alt: PyPI package version
+   :target: https://pypi.org/project/imcluster/
+
+``imcluster`` clusters images using features from pretrained
+vision models. It produces a reusable cache and a self-contained HTML
 gallery organized by cluster.
 
 The default model is DINOv3 ViT-B/16. Spectral clustering is the default, with
@@ -16,10 +28,32 @@ Installation
 
     python -m pip install imcluster
 
-DINOv3 model repositories are gated. Before the first run, accept Meta's model
-terms on Hugging Face and authenticate locally::
+DINOv3 model repositories are gated. Before the first run:
 
-    hf auth login
+#. Sign in to Hugging Face and open the `DINOv3 ViT-B/16 model page
+   <https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m>`_.
+#. Review and accept Meta's DINOv3 license and agree to share the requested
+   contact information. Approval is usually automatic, but access can take
+   several minutes (often 5--15 minutes) to propagate.
+#. Authenticate the machine that will run ``imcluster``::
+
+       hf auth login
+
+   This opens Hugging Face's browser login flow and stores the resulting token
+   locally. Confirm the active account with::
+
+       hf auth whoami
+
+For a server or non-interactive environment, create a read token in `Hugging
+Face token settings <https://huggingface.co/settings/tokens>`_ and expose it to
+the process instead::
+
+    export HF_TOKEN=hf_your_token_here
+
+Never commit a Hugging Face token to the repository or place it directly in a
+script. Accepting access on the website and authenticating locally are both
+required; a valid token from an account without model access cannot download
+the weights.
 
 Model weights use the DINOv3 license; the ``imcluster`` source code uses the
 Apache License 2.0.
