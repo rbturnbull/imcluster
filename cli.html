@@ -8,14 +8,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Command-line reference &mdash; imcluster 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=938c9ccc"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -105,8 +105,8 @@
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">--recursive</span></code> and <code class="docutils literal notranslate"><span class="pre">--max-images</span> <span class="pre">INTEGER</span></code></dt><dd><p>Control input discovery.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">--algorithm</span> <span class="pre">[spectral|dbscan]</span></code></dt><dd><p>Select clustering behavior. Spectral clustering uses <code class="docutils literal notranslate"><span class="pre">--n-clusters</span></code>;
-DBSCAN uses <code class="docutils literal notranslate"><span class="pre">--dbscan-eps</span></code> and <code class="docutils literal notranslate"><span class="pre">--dbscan-min-samples</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">--clustering</span> <span class="pre">[spectral|dbscan|hdbscan|kmeans|agglomerative|hierarchical]</span></code></dt><dd><p>Select clustering behavior. Fixed-count methods use <code class="docutils literal notranslate"><span class="pre">--n-clusters</span></code>;
+DBSCAN uses <code class="docutils literal notranslate"><span class="pre">--dbscan-eps</span></code>. DBSCAN and HDBSCAN share <code class="docutils literal notranslate"><span class="pre">--min-samples</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">--thumbnail-width</span> <span class="pre">INTEGER</span></code> and <code class="docutils literal notranslate"><span class="pre">--thumbnail-height</span> <span class="pre">INTEGER</span></code></dt><dd><p>Set the maximum embedded thumbnail dimensions.</p>
 </dd>
@@ -115,7 +115,7 @@ DBSCAN uses <code class="docutils literal notranslate"><span class="pre">--dbsca
 <section id="cache-options">
 <h2>Cache options<a class="headerlink" href="#cache-options" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">--force</span></code> replaces every cached stage. <code class="docutils literal notranslate"><span class="pre">--force-features</span></code>,
-<code class="docutils literal notranslate"><span class="pre">--force-pca</span></code>, <code class="docutils literal notranslate"><span class="pre">--force-cluster</span></code>, and <code class="docutils literal notranslate"><span class="pre">--force-thumbnails</span></code> recompute
+<code class="docutils literal notranslate"><span class="pre">--force-cluster</span></code>, and <code class="docutils literal notranslate"><span class="pre">--force-thumbnails</span></code> recompute
 individual stages and their required downstream results.</p>
 </section>
 </section>

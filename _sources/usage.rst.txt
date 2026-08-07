@@ -22,5 +22,6 @@ stage-specific force option to recompute part of the pipeline.
 Clustering
 ==========
 
-Spectral clustering uses ``--n-clusters``. DBSCAN instead uses
-``--dbscan-eps`` and ``--dbscan-min-samples`` and reports outliers as noise.
+Spectral, K-means, agglomerative, and hierarchical clustering use
+``--n-clusters``. DBSCAN uses ``--dbscan-eps``; DBSCAN and HDBSCAN share
+``--min-samples`` and report outliers as noise.
