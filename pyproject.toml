@@ -24,6 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "jinja2>=3.1",
+    "huggingface-hub>=0.34,<2",
     "numpy>=1.23",
     "pandas>=1.5",
     "pillow>=10",

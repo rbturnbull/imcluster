@@ -3,11 +3,15 @@ import pytest
 
 from imcluster.features import (
     CONVNEXT_MODELS,
+    DINOV2_FALLBACK_MODELS,
+    DINOV2_MODELS,
     VIT_MODELS,
     Device,
+    DinoVersion,
     ModelArchitecture,
     ModelSize,
     build_features,
+    dinov3_available,
     resolve_device,
     resolve_model,
 )
@@ -59,7 +63,9 @@ def test_resolve_device_auto_falls_back_to_cpu(monkeypatch):
     list(VIT_MODELS.items()),
 )
 def test_resolve_model_maps_all_vit_sizes(size, expected):
-    assert resolve_model(None, ModelArchitecture.VIT, size) == expected
+    assert (
+        resolve_model(None, DinoVersion.THREE, ModelArchitecture.VIT, size) == expected
+    )
 
 
 @pytest.mark.parametrize(
@@ -67,22 +73,106 @@ def test_resolve_model_maps_all_vit_sizes(size, expected):
     list(CONVNEXT_MODELS.items()),
 )
 def test_resolve_model_maps_supported_convnext_sizes(size, expected):
-    assert resolve_model(None, ModelArchitecture.CONVNEXT, size) == expected
+    assert (
+        resolve_model(None, DinoVersion.THREE, ModelArchitecture.CONVNEXT, size)
+        == expected
+    )
+
+
+@pytest.mark.parametrize(("size", "expected"), list(DINOV2_MODELS.items()))
+@pytest.mark.parametrize("architecture", list(ModelArchitecture))
+def test_resolve_model_maps_dinov2_sizes_and_ignores_architecture(
+    size, expected, architecture
+):
+    assert resolve_model(None, DinoVersion.TWO, architecture, size) == expected
+
+
+@pytest.mark.parametrize(("size", "expected"), list(VIT_MODELS.items()))
+def test_resolve_model_auto_uses_accessible_dinov3(size, expected, monkeypatch):
+    monkeypatch.setattr("imcluster.features.dinov3_available", lambda model: True)
+
+    assert (
+        resolve_model(None, DinoVersion.AUTO, ModelArchitecture.VIT, size) == expected
+    )
+
+
+@pytest.mark.parametrize(("size", "expected"), list(DINOV2_FALLBACK_MODELS.items()))
+def test_resolve_model_auto_falls_back_to_dinov2(size, expected, monkeypatch):
+    monkeypatch.setattr("imcluster.features.dinov3_available", lambda model: False)
+
+    assert (
+        resolve_model(None, DinoVersion.AUTO, ModelArchitecture.VIT, size) == expected
+    )
+
+
+def test_resolve_model_auto_falls_back_when_dinov3_preset_is_missing():
+    assert (
+        resolve_model(
+            None,
+            DinoVersion.AUTO,
+            ModelArchitecture.CONVNEXT,
+            ModelSize.HUGE,
+        )
+        == "facebook/dinov2-giant"
+    )
+
+
+def test_dinov3_available_detects_cached_weights(tmp_path, monkeypatch):
+    (tmp_path / "model.safetensors").write_bytes(b"weights")
+    monkeypatch.setattr(
+        "imcluster.features.snapshot_download", lambda *args, **kwargs: str(tmp_path)
+    )
+
+    assert dinov3_available("organization/model")
+
+
+def test_dinov3_available_checks_hub_when_not_cached(monkeypatch):
+    monkeypatch.setattr(
+        "imcluster.features.snapshot_download",
+        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("not cached")),
+    )
+    monkeypatch.setattr(
+        "imcluster.features.hf_hub_download", lambda *args, **kwargs: "config.json"
+    )
+
+    assert dinov3_available("organization/model")
+
+
+def test_dinov3_available_returns_false_without_cache_or_access(monkeypatch):
+    def unavailable(*args, **kwargs):
+        raise OSError("unavailable")
+
+    monkeypatch.setattr("imcluster.features.snapshot_download", unavailable)
+    monkeypatch.setattr("imcluster.features.hf_hub_download", unavailable)
+
+    assert not dinov3_available("organization/model")
 
 
 @pytest.mark.parametrize("size", [ModelSize.HUGE, ModelSize.MAX])
 def test_resolve_model_rejects_unavailable_convnext_sizes(size):
     with pytest.raises(
         ValueError,
-        match=f"Size '{size.value}' is not available for architecture 'convnext'",
+        match=(
+            f"Size '{size.value}' is not available for DINOv3 architecture 'convnext'"
+        ),
     ):
-        resolve_model(None, ModelArchitecture.CONVNEXT, size)
+        resolve_model(None, DinoVersion.THREE, ModelArchitecture.CONVNEXT, size)
+
+
+@pytest.mark.parametrize("size", [ModelSize.TINY, ModelSize.HUGE])
+def test_resolve_model_rejects_unavailable_dinov2_sizes(size):
+    with pytest.raises(
+        ValueError,
+        match=f"Size '{size.value}' is not available for DINOv2",
+    ):
+        resolve_model(None, DinoVersion.TWO, ModelArchitecture.VIT, size)
 
 
 def test_explicit_model_overrides_architecture_and_size():
     assert (
         resolve_model(
             "organization/custom-model",
+            DinoVersion.TWO,
             ModelArchitecture.CONVNEXT,
             ModelSize.MAX,
         )

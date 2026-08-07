@@ -1,9 +1,10 @@
 import numpy as np
+import pytest
 from rich.text import Text
 from typer.testing import CliRunner
 
 from imcluster.io import ImclusterIO
-from imcluster.main import app
+from imcluster.main import app, open_gallery
 
 
 def plain_output(result) -> str:
@@ -20,6 +21,12 @@ def invoke_cli(app, args, **kwargs):
     return CliRunner().invoke(app, args, **kwargs)
 
 
+@pytest.fixture(autouse=True)
+def unavailable_dinov3(monkeypatch):
+    """Avoid network access and exercise the default automatic fallback."""
+    monkeypatch.setattr("imcluster.features.dinov3_available", lambda model: False)
+
+
 def test_cli_help_is_available():
     result = invoke_cli(
         app,
@@ -31,13 +38,27 @@ def test_cli_help_is_available():
 
     assert result.exit_code == 0
     assert "inputs" in help_text.lower()
-    assert "output_df" in help_text.lower()
+    assert "--cache" in help_text
+    assert "--gallery" in help_text
+    assert "--no-open" in help_text
     assert "--arch" in help_text
+    assert "--dino-version" in help_text
     assert "--size" in help_text
     assert "--model" in help_text
 
 
-def test_cli_uses_default_vit_base_model(tmp_path, image_factory, monkeypatch):
+def test_open_gallery_uses_file_uri(tmp_path, monkeypatch):
+    gallery = tmp_path / "gallery.html"
+    gallery.write_text("gallery")
+    opened = []
+    monkeypatch.setattr("imcluster.main.webbrowser.open", opened.append)
+
+    open_gallery(gallery)
+
+    assert opened == [gallery.resolve().as_uri()]
+
+
+def test_cli_auto_falls_back_to_dinov2_base(tmp_path, image_factory, monkeypatch):
     images = [image_factory("one.jpg"), image_factory("two.jpg")]
     observed = {}
 
@@ -54,11 +75,11 @@ def test_cli_uses_default_vit_base_model(tmp_path, image_factory, monkeypatch):
 
     result = invoke_cli(
         app,
-        [*(str(image) for image in images), str(tmp_path / "results.parquet")],
+        [*(str(image) for image in images), "--no-open"],
     )
 
     assert result.exit_code == 0
-    assert observed["model_name"] == "facebook/dinov3-vitb16-pretrain-lvd1689m"
+    assert observed["model_name"] == "facebook/dinov2-base"
 
 
 def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monkeypatch):
@@ -80,13 +101,13 @@ def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monke
         app,
         [
             *(str(image) for image in images),
-            str(tmp_path / "results.parquet"),
             "--arch",
             "convnext",
             "--size",
             "max",
             "--model",
             "organization/custom-model",
+            "--no-open",
         ],
     )
 
@@ -101,7 +122,8 @@ def test_cli_rejects_unavailable_convnext_size(tmp_path, image_factory):
         app,
         [
             str(image),
-            str(tmp_path / "results.parquet"),
+            "--dino-version",
+            "3",
             "--arch",
             "convnext",
             "--size",
@@ -111,7 +133,7 @@ def test_cli_rejects_unavailable_convnext_size(tmp_path, image_factory):
 
     output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Size 'huge' is not available for architecture" in output_text
+    assert "Size 'huge' is not available for DINOv3 architecture" in output_text
     assert "'convnext'" in output_text
 
 
@@ -121,19 +143,24 @@ def test_cli_rejects_cache_for_different_images(tmp_path, image_factory):
         image_factory("requested-one.jpg"),
         image_factory("requested-two.jpg"),
     ]
-    output = tmp_path / "results.parquet"
-    ImclusterIO(cached_images, output).save()
+    cache = tmp_path / "results.parquet"
+    ImclusterIO(cached_images, cache).save()
 
     result = invoke_cli(
         app,
-        [*(str(image) for image in requested_images), str(output)],
+        [
+            *(str(image) for image in requested_images),
+            "--cache",
+            str(cache),
+            "--no-open",
+        ],
         color=False,
         terminal_width=240,
     )
 
     output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Invalid value for output_df" in output_text
+    assert "Invalid value for --cache" in output_text
     assert "--force" in output_text
 
 
@@ -143,7 +170,7 @@ def test_cli_rejects_input_without_valid_images(tmp_path):
 
     result = invoke_cli(
         app,
-        [str(empty_directory), str(tmp_path / "results.parquet")],
+        [str(empty_directory), "--no-open"],
     )
 
     output_text = plain_output(result)
@@ -157,7 +184,7 @@ def test_cli_requires_at_least_two_images(tmp_path, image_factory):
 
     result = invoke_cli(
         app,
-        [str(image), str(tmp_path / "results.parquet")],
+        [str(image), "--no-open"],
     )
 
     output_text = plain_output(result)
@@ -168,8 +195,8 @@ def test_cli_requires_at_least_two_images(tmp_path, image_factory):
 
 def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monkeypatch):
     images = [image_factory("one.jpg"), image_factory("two.jpg")]
-    output_df = tmp_path / "results.parquet"
-    output_html = tmp_path / "report.html"
+    cache = tmp_path / "results.parquet"
+    gallery = tmp_path / "report.html"
     observed = {}
 
     monkeypatch.setattr(
@@ -193,21 +220,23 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
         app,
         [
             *(str(image) for image in images),
-            str(output_df),
-            "--output-html",
-            str(output_html),
+            "--cache",
+            str(cache),
+            "--gallery",
+            str(gallery),
             "--clustering",
             "dbscan",
+            "--no-open",
         ],
     )
 
     assert result.exit_code == 0
     assert observed == {
         "algorithm": "dbscan",
-        "output_html": output_html,
+        "output_html": gallery,
         "cluster_column": "dbscan_cluster",
         "metadata": {
-            "Model": "facebook/dinov3-vitb16-pretrain-lvd1689m",
+            "Model": "facebook/dinov2-base",
             "Algorithm": "dbscan",
             "Images": "2",
         },
@@ -218,8 +247,8 @@ def test_cli_runs_local_pipeline_and_writes_requested_files(
     tmp_path, image_factory, monkeypatch
 ):
     images = [image_factory(f"{index}.jpg") for index in range(4)]
-    output_df = tmp_path / "results.parquet"
-    output_html = tmp_path / "report.html"
+    cache = tmp_path / "results.parquet"
+    gallery = tmp_path / "report.html"
     features = np.array([[1.0, 0.0], [1.0, 0.1], [0.0, 1.0], [0.1, 1.0]])
     monkeypatch.setattr(
         "imcluster.main.build_features", lambda *args, **kwargs: features
@@ -229,15 +258,76 @@ def test_cli_runs_local_pipeline_and_writes_requested_files(
         app,
         [
             *(str(image) for image in images),
-            str(output_df),
-            "--output-html",
-            str(output_html),
+            "--cache",
+            str(cache),
+            "--gallery",
+            str(gallery),
             "--n-clusters",
             "2",
+            "--no-open",
         ],
     )
 
     assert result.exit_code == 0, result.exception
-    assert output_df.is_file()
-    assert output_html.is_file()
-    assert "Cluster" in output_html.read_text()
+    assert cache.is_file()
+    assert gallery.is_file()
+    assert "Cluster" in gallery.read_text()
+
+
+def test_cli_opens_saved_gallery(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    gallery = tmp_path / "gallery.html"
+    opened = []
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "imcluster.main.write_html",
+        lambda *args, **kwargs: kwargs["output_html"].write_text("gallery"),
+    )
+    monkeypatch.setattr("imcluster.main.open_gallery", opened.append)
+
+    result = invoke_cli(
+        app,
+        [*(str(image) for image in images), "--gallery", str(gallery)],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert opened == [gallery]
+
+
+def test_cli_uses_temporary_outputs_when_paths_are_omitted(
+    tmp_path, image_factory, monkeypatch
+):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    temporary_directory = tmp_path / "temporary-output"
+    temporary_directory.mkdir()
+    written_gallery = []
+    monkeypatch.setattr(
+        "imcluster.main.tempfile.mkdtemp",
+        lambda **kwargs: str(temporary_directory),
+    )
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "imcluster.main.write_html",
+        lambda *args, **kwargs: written_gallery.append(kwargs["output_html"]),
+    )
+
+    result = invoke_cli(
+        app,
+        [*(str(image) for image in images), "--no-open"],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert (temporary_directory / "results.parquet").is_file()
+    assert written_gallery == [temporary_directory / "gallery.html"]

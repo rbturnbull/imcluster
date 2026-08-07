@@ -1,5 +1,7 @@
 """Command-line entry point for the imcluster pipeline."""
 
+import tempfile
+import webbrowser
 from pathlib import Path
 from typing import Annotated
 
@@ -9,6 +11,7 @@ from rich.console import Console
 from .cluster import ClusteringAlgorithm, cluster
 from .features import (
     Device,
+    DinoVersion,
     ModelArchitecture,
     ModelSize,
     build_features,
@@ -23,33 +26,42 @@ console = Console()
 app = typer.Typer()
 
 
+def open_gallery(path: Path) -> None:
+    """Open a generated HTML gallery in the default web browser."""
+    webbrowser.open(path.resolve().as_uri())
+
+
 @app.command()
 def main(
     inputs: Annotated[
         list[Path],
         typer.Argument(help="Image files, directories, or text manifests to process."),
     ],
-    output_df: Annotated[
-        Path,
-        typer.Argument(help="Destination Parquet file for cached results."),
-    ],
-    output_html: Annotated[
+    cache: Annotated[
         Path | None,
-        typer.Option(help="Destination path for the HTML cluster gallery."),
+        typer.Option(help="Preserve processing results in this Parquet file."),
     ] = None,
+    gallery: Annotated[
+        Path | None,
+        typer.Option(help="Preserve the HTML gallery at this path."),
+    ] = None,
+    dino_version: Annotated[
+        DinoVersion,
+        typer.Option(help="DINO model generation used for preset selection."),
+    ] = DinoVersion.AUTO,
     arch: Annotated[
         ModelArchitecture,
-        typer.Option(
-            help="DINOv3 architecture family used when --model is not supplied."
-        ),
+        typer.Option(help="DINOv3 architecture family; ignored for DINOv2."),
     ] = ModelArchitecture.VIT,
     size: Annotated[
         ModelSize,
-        typer.Option(help="DINOv3 model size used when --model is not supplied."),
+        typer.Option(help="DINO model size used when --model is not supplied."),
     ] = ModelSize.BASE,
     model: Annotated[
         str | None,
-        typer.Option(help="Hugging Face model ID; overrides --arch and --size."),
+        typer.Option(
+            help="Hugging Face model ID; overrides --dino-version, --arch, and --size."
+        ),
     ] = None,
     device: Annotated[
         Device,
@@ -110,12 +122,29 @@ def main(
         bool,
         typer.Option(help="Regenerate cached thumbnails."),
     ] = False,
+    no_open: Annotated[
+        bool,
+        typer.Option("--no-open", help="Do not open the generated gallery."),
+    ] = False,
 ) -> None:
-    """Cluster images and write cached Parquet data and an HTML gallery."""
+    """Cluster images and open an HTML gallery."""
     try:
-        model_name = resolve_model(model, arch, size)
+        model_name = resolve_model(model, dino_version, arch, size)
     except ValueError as error:
         raise typer.BadParameter(str(error), param_hint="--size") from error
+
+    temporary_directory: Path | None = None
+    if cache is None:
+        temporary_directory = Path(tempfile.mkdtemp(prefix="imcluster-"))
+        output_df = temporary_directory / "results.parquet"
+    else:
+        output_df = cache
+    if gallery is None:
+        if temporary_directory is None:
+            temporary_directory = Path(tempfile.mkdtemp(prefix="imcluster-"))
+        output_html = temporary_directory / "gallery.html"
+    else:
+        output_html = gallery
 
     try:
         imcluster_io = ImclusterIO(
@@ -126,7 +155,7 @@ def main(
             reset_cache=force,
         )
     except ValueError as error:
-        raise typer.BadParameter(str(error), param_hint="output_df") from error
+        raise typer.BadParameter(str(error), param_hint="--cache") from error
     if not imcluster_io.images:
         raise typer.BadParameter(
             "No valid input images were found", param_hint="inputs"
@@ -172,3 +201,5 @@ def main(
             "Images": str(len(imcluster_io.images)),
         },
     )
+    if not no_open:
+        open_gallery(output_html)

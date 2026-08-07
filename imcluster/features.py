@@ -1,10 +1,13 @@
 """Feature extraction using pretrained Hugging Face vision models."""
 
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import torch
+from huggingface_hub import hf_hub_download, snapshot_download
+from huggingface_hub.errors import HfHubHTTPError
 from numpy.typing import NDArray
 from PIL import Image, ImageOps, UnidentifiedImageError
 from rich.console import Console
@@ -21,6 +24,14 @@ class ModelArchitecture(str, Enum):
 
     VIT = "vit"
     CONVNEXT = "convnext"
+
+
+class DinoVersion(str, Enum):
+    """Supported DINO model generations."""
+
+    AUTO = "auto"
+    TWO = "2"
+    THREE = "3"
 
 
 class ModelSize(str, Enum):
@@ -59,7 +70,41 @@ CONVNEXT_MODELS = {
     ModelSize.LARGE: "facebook/dinov3-convnext-large-pretrain-lvd1689m",
 }
 
-DEFAULT_MODEL = VIT_MODELS[ModelSize.BASE]
+DINOV2_MODELS = {
+    ModelSize.SMALL: "facebook/dinov2-small",
+    ModelSize.BASE: "facebook/dinov2-base",
+    ModelSize.LARGE: "facebook/dinov2-large",
+    ModelSize.MAX: "facebook/dinov2-giant",
+}
+
+DINOV2_FALLBACK_MODELS = {
+    ModelSize.TINY: DINOV2_MODELS[ModelSize.SMALL],
+    ModelSize.SMALL: DINOV2_MODELS[ModelSize.SMALL],
+    ModelSize.BASE: DINOV2_MODELS[ModelSize.BASE],
+    ModelSize.LARGE: DINOV2_MODELS[ModelSize.LARGE],
+    ModelSize.HUGE: DINOV2_MODELS[ModelSize.MAX],
+    ModelSize.MAX: DINOV2_MODELS[ModelSize.MAX],
+}
+
+DEFAULT_MODEL = DINOV2_MODELS[ModelSize.BASE]
+
+
+def dinov3_available(model_name: str) -> bool:
+    """Return whether a DINOv3 model is cached or accessible from the Hub."""
+    try:
+        snapshot = Path(snapshot_download(model_name, local_files_only=True))
+        if any(snapshot.glob("*.safetensors")) or any(
+            snapshot.glob("pytorch_model*.bin")
+        ):
+            return True
+    except (HfHubHTTPError, OSError):
+        pass
+
+    try:
+        hf_hub_download(model_name, "config.json")
+    except (HfHubHTTPError, OSError):
+        return False
+    return True
 
 
 def resolve_device(device: Device) -> str:
@@ -75,13 +120,15 @@ def resolve_device(device: Device) -> str:
 
 def resolve_model(
     model: str | None,
+    dino_version: DinoVersion,
     architecture: ModelArchitecture,
     size: ModelSize,
 ) -> str:
-    """Resolve a custom model or DINOv3 architecture-size preset.
+    """Resolve a custom model or DINO architecture-size preset.
 
     Args:
         model: Explicit Hugging Face model ID, which takes precedence when set.
+        dino_version: DINO model generation used for preset selection.
         architecture: ViT or ConvNeXt architecture family.
         size: Requested model-size tier.
 
@@ -94,14 +141,36 @@ def resolve_model(
     if model:
         return model
 
-    models = VIT_MODELS if architecture is ModelArchitecture.VIT else CONVNEXT_MODELS
+    if dino_version is DinoVersion.TWO:
+        models = DINOV2_MODELS
+    else:
+        models = (
+            VIT_MODELS if architecture is ModelArchitecture.VIT else CONVNEXT_MODELS
+        )
     try:
-        return models[size]
+        selected_model = models[size]
     except KeyError as error:
+        if dino_version is DinoVersion.AUTO:
+            fallback = DINOV2_FALLBACK_MODELS[size]
+            console.print(
+                f"DINOv3 has no {architecture.value}/{size.value} preset; "
+                f"using {fallback}"
+            )
+            return fallback
+        selection = (
+            "DINOv2"
+            if dino_version is DinoVersion.TWO
+            else f"DINOv3 architecture '{architecture.value}'"
+        )
         raise ValueError(
-            f"Size '{size.value}' is not available for architecture "
-            f"'{architecture.value}'"
+            f"Size '{size.value}' is not available for {selection}"
         ) from error
+
+    if dino_version is DinoVersion.AUTO and not dinov3_available(selected_model):
+        fallback = DINOV2_FALLBACK_MODELS[size]
+        console.print(f"DINOv3 is unavailable; using {fallback}")
+        return fallback
+    return selected_model
 
 
 def build_features(

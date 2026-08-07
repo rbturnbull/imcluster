@@ -18,8 +18,9 @@
 vision models. It produces a reusable cache and a self-contained HTML
 gallery organized by cluster.
 
-The default model is DINOv3 ViT-B/16. Spectral clustering is the default, with
-DBSCAN available for collections where the number of groups is not known.
+By default, ``imcluster`` uses DINOv3 when its weights are cached or accessible
+and otherwise falls back to DINOv2. Spectral clustering is the default, with
+DBSCAN available when the number of groups is not known.
 
 Installation
 ============
@@ -28,7 +29,8 @@ Installation
 
     python -m pip install imcluster
 
-DINOv3 model repositories are gated. Before the first run:
+DINOv2 presets are public and require no authentication. DINOv3 model
+repositories are gated. Before using ``--dino-version 3``:
 
 #. Sign in to Hugging Face and open the `DINOv3 ViT-B/16 model page
    <https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m>`_.
@@ -55,19 +57,20 @@ script. Accepting access on the website and authenticating locally are both
 required; a valid token from an account without model access cannot download
 the weights.
 
-Model weights use the DINOv3 license; the ``imcluster`` source code uses the
-Apache License 2.0.
+DINOv2 weights use the Apache License 2.0. DINOv3 weights use the DINOv3
+license; the ``imcluster`` source code uses the Apache License 2.0.
 
 Quick start
 ===========
 
-Cluster the images directly inside a directory into 20 groups::
+Cluster the images directly inside a directory and open the gallery::
 
-    imcluster photos/ results.parquet --output-html clusters.html
+    imcluster photos/
 
-Include nested directories and request 12 groups::
+Include nested directories, request 12 groups, and preserve the outputs::
 
-    imcluster photos/ results.parquet --recursive --n-clusters 12
+    imcluster photos/ --recursive --n-clusters 12 \
+        --cache results.parquet --gallery clusters.html
 
 Inputs may be individual image files, directories, or UTF-8 text manifests with
 one image path per line. Relative manifest entries are resolved from the
@@ -76,10 +79,14 @@ manifest's directory. Supported formats are PNG, JPEG, TIFF, BMP, and GIF.
 Outputs
 -------
 
-The Parquet output contains resolved paths, filenames, feature vectors, cluster
-labels, thumbnails, and run metadata. It is also used as a
-cache on subsequent runs. The HTML output is a standalone gallery: it embeds
-its styles and JPEG thumbnails and does not require an internet connection.
+Without output options, ``imcluster`` writes temporary processing data and a
+temporary HTML gallery, then opens the gallery in the default browser. Pass
+``--no-open`` to suppress browser launching.
+
+``--cache PATH`` preserves the Parquet cache, which contains resolved paths,
+filenames, feature vectors, cluster labels, thumbnails, and run metadata.
+``--gallery PATH`` preserves the standalone HTML gallery. It embeds its styles
+and JPEG thumbnails and does not require an internet connection.
 
 If the input list no longer matches an existing cache, ``imcluster`` stops with
 a clear error. Pass ``--force`` to intentionally replace the cache. More
@@ -89,7 +96,25 @@ and ``--force-thumbnails``.
 Models
 ======
 
-The default selection is ``--arch vit --size base``. Available presets are:
+The default selection is ``--dino-version auto --size base``. Automatic mode
+uses DINOv3 when the selected model is cached or accessible with the active
+Hugging Face account. Otherwise it reports the fallback and uses DINOv2.
+
+Explicit DINOv2 selection uses ``--dino-version 2``. Its presets are ``small``,
+``base``, ``large``, and ``max``; ``max`` selects DINOv2 Giant. For DINOv2,
+``--arch`` is ignored. In automatic mode, ``tiny`` falls back to DINOv2 Small
+and ``huge`` falls back to DINOv2 Giant.
+
+======  ==========================
+Size    Hugging Face model
+======  ==========================
+small   ``facebook/dinov2-small``
+base    ``facebook/dinov2-base``
+large   ``facebook/dinov2-large``
+max     ``facebook/dinov2-giant``
+======  ==========================
+
+DINOv3 is selected with ``--dino-version 3``. Its available presets are:
 
 ===============  ======  ====================================================
 Architecture     Size    Hugging Face model
@@ -108,7 +133,7 @@ Architecture     Size    Hugging Face model
 
 An arbitrary compatible Hugging Face model overrides the preset::
 
-    imcluster photos/ results.parquet --model organization/model-id
+    imcluster photos/ --model organization/model-id
 
 Inference
 =========
@@ -117,9 +142,9 @@ Inference
 selected explicitly with ``--device cpu|cuda|mps``. ``--batch-size`` defaults
 to 8; reduce it if inference runs out of memory.
 
-ViT-B is suitable for a quality-oriented default but can be slow on CPU. Use
-``--size tiny`` or ``--arch convnext --size tiny`` for a lighter run. The
-``huge`` and ``max`` ViT variants require substantial accelerator memory.
+ViT-B is suitable for a quality-oriented default but can be slow on CPU.
+``--dino-version 2 --size small`` or ``--dino-version 3 --size tiny`` provides
+a lighter run. The largest variants require substantial accelerator memory.
 
 Clustering
 ==========
@@ -127,16 +152,16 @@ Clustering
 Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
 count::
 
-    imcluster photos/ results.parquet --clustering spectral --n-clusters 10
+    imcluster photos/ --clustering spectral --n-clusters 10
 
 DBSCAN discovers groups and marks outliers as the noise cluster::
 
-    imcluster photos/ results.parquet --clustering dbscan \
+    imcluster photos/ --clustering dbscan \
         --dbscan-eps 0.35 --min-samples 3
 
 HDBSCAN also discovers groups and noise while adapting to varying densities::
 
-    imcluster photos/ results.parquet --clustering hdbscan --min-samples 5
+    imcluster photos/ --clustering hdbscan --min-samples 5
 
 Run ``imcluster --help`` for the complete command-line reference.
 
@@ -145,8 +170,8 @@ Limitations
 
 Model downloads can be large, and the biggest presets are impractical without
 a high-memory GPU. Clustering quality depends on the visual domain and chosen
-parameters. DINOv3's training data also carries the biases documented by its
-model authors.
+parameters. The models' training data also carries the biases documented by
+their authors.
 
 Development
 ===========
