@@ -5,7 +5,8 @@ Development
 Install and verify the project with::
 
    poetry install
-   poetry run pytest
+   poetry run coverage run -m pytest
+   poetry run coverage report --fail-under=80
    poetry run ruff check imcluster tests
    poetry run mypy imcluster
    poetry run sphinx-build -W -b html docs docs/_build/html

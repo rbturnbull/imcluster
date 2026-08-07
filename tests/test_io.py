@@ -75,7 +75,7 @@ def test_directory_images_are_sorted_and_duplicates_removed(tmp_path, image_fact
 def test_manifest_paths_are_relative_to_manifest(tmp_path, image_factory):
     image = image_factory("collection/image.jpg")
     manifest = image.parent / "images.txt"
-    manifest.write_text("image.jpg\n", encoding="utf-8")
+    manifest.write_text("\nimage.jpg\n   \n", encoding="utf-8")
 
     store = ImclusterIO([manifest], tmp_path / "results.parquet")
 

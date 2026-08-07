@@ -56,7 +56,12 @@ def write_html(
         strict=True,
     ):
         data[cluster].append(
-            {"filename": filename, "path": path, "thumbnail": thumbnail}
+            {
+                "filename": filename,
+                "path": path,
+                "file_uri": Path(path).resolve().as_uri(),
+                "thumbnail": thumbnail,
+            }
         )
 
     report_metadata = dict(metadata or {})

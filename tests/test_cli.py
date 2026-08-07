@@ -1,13 +1,13 @@
 import numpy as np
-from click import unstyle
 from typer.testing import CliRunner
 
+from imcluster.io import ImclusterIO
 from imcluster.main import app
 
 
 def test_cli_help_is_available():
     result = CliRunner().invoke(app, ["--help"], color=False)
-    help_text = unstyle(result.stdout)
+    help_text = result.stdout
 
     assert result.exit_code == 0
     assert "inputs" in help_text.lower()
@@ -94,6 +94,52 @@ def test_cli_rejects_unavailable_convnext_size(tmp_path, image_factory):
     assert "'convnext'" in result.output
 
 
+def test_cli_rejects_cache_for_different_images(tmp_path, image_factory):
+    cached_images = [image_factory("cached-one.jpg"), image_factory("cached-two.jpg")]
+    requested_images = [
+        image_factory("requested-one.jpg"),
+        image_factory("requested-two.jpg"),
+    ]
+    output = tmp_path / "results.parquet"
+    ImclusterIO(cached_images, output).save()
+
+    result = CliRunner().invoke(
+        app,
+        [*(str(image) for image in requested_images), str(output)],
+    )
+
+    assert result.exit_code == 2
+    assert "Invalid value for output_df" in result.output
+    assert "--force" in result.output
+
+
+def test_cli_rejects_input_without_valid_images(tmp_path):
+    empty_directory = tmp_path / "empty"
+    empty_directory.mkdir()
+
+    result = CliRunner().invoke(
+        app,
+        [str(empty_directory), str(tmp_path / "results.parquet")],
+    )
+
+    assert result.exit_code == 2
+    assert "Invalid value for inputs" in result.output
+    assert "No valid input images were found" in result.output
+
+
+def test_cli_requires_at_least_two_images(tmp_path, image_factory):
+    image = image_factory("only.jpg")
+
+    result = CliRunner().invoke(
+        app,
+        [str(image), str(tmp_path / "results.parquet")],
+    )
+
+    assert result.exit_code == 2
+    assert "Invalid value for inputs" in result.output
+    assert "At least two images are required" in result.output
+
+
 def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monkeypatch):
     images = [image_factory("one.jpg"), image_factory("two.jpg")]
     output_df = tmp_path / "results.parquet"
@@ -124,7 +170,7 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
             str(output_df),
             "--output-html",
             str(output_html),
-            "--algorithm",
+            "--clustering",
             "dbscan",
         ],
     )

@@ -8,6 +8,7 @@ from imcluster.features import (
     ModelArchitecture,
     ModelSize,
     build_features,
+    resolve_device,
     resolve_model,
 )
 from imcluster.io import ImclusterIO
@@ -22,6 +23,35 @@ class FakeExtractor:
         assert all(item.mode == "RGB" for item in image)
         # One pooled image embedding for every input image.
         return [[[3.0, 4.0]] for _ in image]
+
+
+@pytest.mark.parametrize("device", [Device.CPU, Device.CUDA, Device.MPS])
+def test_resolve_device_preserves_explicit_selection(device):
+    assert resolve_device(device) == device.value
+
+
+def test_resolve_device_auto_prefers_cuda(monkeypatch):
+    monkeypatch.setattr("imcluster.features.torch.cuda.is_available", lambda: True)
+
+    assert resolve_device(Device.AUTO) == "cuda"
+
+
+def test_resolve_device_auto_uses_mps_without_cuda(monkeypatch):
+    monkeypatch.setattr("imcluster.features.torch.cuda.is_available", lambda: False)
+    monkeypatch.setattr(
+        "imcluster.features.torch.backends.mps.is_available", lambda: True
+    )
+
+    assert resolve_device(Device.AUTO) == "mps"
+
+
+def test_resolve_device_auto_falls_back_to_cpu(monkeypatch):
+    monkeypatch.setattr("imcluster.features.torch.cuda.is_available", lambda: False)
+    monkeypatch.setattr(
+        "imcluster.features.torch.backends.mps.is_available", lambda: False
+    )
+
+    assert resolve_device(Device.AUTO) == "cpu"
 
 
 @pytest.mark.parametrize(
@@ -106,3 +136,36 @@ def test_build_features_rejects_zero_embedding(tmp_path, image_factory, monkeypa
 
     with pytest.raises(ValueError, match="zero-length embedding"):
         build_features(store, device=Device.CPU)
+
+
+def test_build_features_rejects_unreadable_image(
+    tmp_path, image_factory, monkeypatch
+):
+    image = image_factory("broken.jpg")
+    store = ImclusterIO([image], tmp_path / "results.parquet")
+    image.write_bytes(b"not an image")
+    monkeypatch.setattr(
+        "imcluster.features.pipeline",
+        lambda **kwargs: FakeExtractor(),
+    )
+
+    with pytest.raises(ValueError, match=r"Cannot read image '.+broken\.jpg'"):
+        build_features(store, device=Device.CPU)
+
+
+def test_build_features_rejects_unpooled_embeddings(
+    tmp_path, image_factory, monkeypatch
+):
+    store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
+
+    class UnpooledExtractor:
+        def __call__(self, images, **kwargs):
+            return [[[[1.0, 2.0], [3.0, 4.0]]] for _ in images]
+
+    monkeypatch.setattr(
+        "imcluster.features.pipeline",
+        lambda **kwargs: UnpooledExtractor(),
+    )
+
+    with pytest.raises(ValueError, match="did not return pooled image embeddings"):
+        build_features(store, model_name="unpooled-model", device=Device.CPU)

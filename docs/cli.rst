@@ -31,9 +31,9 @@ Main options
 ``--recursive`` and ``--max-images INTEGER``
    Control input discovery.
 
-``--algorithm [spectral|dbscan]``
-   Select clustering behavior. Spectral clustering uses ``--n-clusters``;
-   DBSCAN uses ``--dbscan-eps`` and ``--dbscan-min-samples``.
+``--clustering [spectral|dbscan|hdbscan|kmeans|agglomerative|hierarchical]``
+   Select clustering behavior. Fixed-count methods use ``--n-clusters``;
+   DBSCAN uses ``--dbscan-eps``. DBSCAN and HDBSCAN share ``--min-samples``.
 
 ``--thumbnail-width INTEGER`` and ``--thumbnail-height INTEGER``
    Set the maximum embedded thumbnail dimensions.

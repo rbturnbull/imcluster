@@ -29,6 +29,17 @@ def test_generate_thumbnail_converts_rgba_to_jpeg(tmp_path):
     assert thumbnail.mode == "RGB"
 
 
+def test_generate_thumbnail_rejects_unreadable_image(tmp_path):
+    source = tmp_path / "broken.jpg"
+    source.write_bytes(b"not an image")
+
+    with pytest.raises(
+        ValueError,
+        match=r"Cannot create thumbnail for '.+broken\.jpg'",
+    ):
+        generate_thumbnail(source, width=10, height=10)
+
+
 def test_generate_thumbnails_generates_and_persists_thumbnails(
     tmp_path, image_factory
 ):
@@ -53,14 +64,21 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     store.df["thumbnail"] = ["encoded-thumbnail"]
     output = tmp_path / "clusters.html"
 
-    write_html(store, output)
+    write_html(
+        store,
+        output,
+        metadata={
+            "Model": "facebook/dinov3-vitb16-pretrain-lvd1689m",
+            "Algorithm": "spectral",
+        },
+    )
     rendered = output.read_text()
 
     assert "Cluster 4" in rendered
     assert 'aria-label="Cluster table of contents"' in rendered
     assert 'href="#cluster-4"' in rendered
     assert 'id="cluster-4"' in rendered
-    assert rendered.count('<span class="badge">1</span>') == 2
+    assert rendered.count('<span class="badge">1 image</span>') == 2
     assert "Cluster 4 (1)" not in rendered
     assert "encoded-thumbnail" in rendered
     assert "&lt;script&gt;alert(1)&lt;/script&gt;.jpg" in rendered
@@ -68,18 +86,33 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert "data:image/jpeg;base64," in rendered
     assert "data:image/png;base64," in rendered
     assert 'class="report-header"' in rendered
+    assert 'href="https://github.com/rbturnbull/imcluster"' in rendered
+    assert f'href="{image.resolve().as_uri()}"' in rendered
+    assert 'target="_blank"' in rendered
+    assert (
+        'href="https://huggingface.co/'
+        'facebook/dinov3-vitb16-pretrain-lvd1689m"' in rendered
+    )
+    assert (
+        'href="https://scikit-learn.org/stable/modules/clustering.html"' in rendered
+    )
     assert "cdn.jsdelivr.net" not in rendered
 
 
 def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):
-    store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
-    store.df["dbscan_cluster"] = [-1]
-    store.df["thumbnail"] = ["encoded-thumbnail"]
+    store = ImclusterIO(
+        [image_factory("one.jpg"), image_factory("two.jpg")],
+        tmp_path / "results.parquet",
+    )
+    store.df["dbscan_cluster"] = [-1, -1]
+    store.df["thumbnail"] = ["encoded-thumbnail", "encoded-thumbnail"]
     output = tmp_path / "dbscan.html"
 
     write_html(store, output, cluster_column="dbscan_cluster")
 
-    assert "Noise" in output.read_text()
+    rendered = output.read_text()
+    assert "Noise" in rendered
+    assert rendered.count('<span class="badge">2 images</span>') == 2
 
 
 def test_write_html_defaults_beside_parquet_output(tmp_path, image_factory):

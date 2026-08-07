@@ -90,14 +90,19 @@ ViT-B is suitable for a quality-oriented default but can be slow on CPU. Use
 Clustering
 ==========
 
-Spectral clustering requires a cluster count::
+Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
+count::
 
-    imcluster photos/ results.parquet --algorithm spectral --n-clusters 10
+    imcluster photos/ results.parquet --clustering spectral --n-clusters 10
 
 DBSCAN discovers groups and marks outliers as the noise cluster::
 
-    imcluster photos/ results.parquet --algorithm dbscan \
-        --dbscan-eps 0.35 --dbscan-min-samples 3
+    imcluster photos/ results.parquet --clustering dbscan \
+        --dbscan-eps 0.35 --min-samples 3
+
+HDBSCAN also discovers groups and noise while adapting to varying densities::
+
+    imcluster photos/ results.parquet --clustering hdbscan --min-samples 5
 
 Run ``imcluster --help`` for the complete command-line reference.
 
@@ -115,7 +120,8 @@ Development
 Clone the repository, install Poetry, and run::
 
     poetry install
-    poetry run pytest
+    poetry run coverage run -m pytest
+    poetry run coverage report --fail-under=80
     poetry run ruff check imcluster tests
     poetry run mypy imcluster
     poetry run sphinx-build -W -b html docs docs/_build/html
@@ -127,6 +133,7 @@ at https://github.com/rbturnbull/imcluster/issues.
 Credits
 -------
 
-``imcluster`` is maintained by Robert Turnbull at the Melbourne Data Analytics
-Platform. Zaher Joukhadar was instrumental in the original idea, and James
+``imcluster`` is maintained by `Robert Turnbull <https://robturnbull.com>`_ at
+the Melbourne Data Analytics Platform. Zaher Joukhadar was instrumental in the
+original idea, and James
 Quang helped implement DINO feature extraction.

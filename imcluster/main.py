@@ -70,21 +70,21 @@ def main(
         bool,
         typer.Option(help="Search directory inputs recursively."),
     ] = False,
-    algorithm: Annotated[
+    clustering: Annotated[
         ClusteringAlgorithm,
-        typer.Option(help="Clustering algorithm."),
+        typer.Option(help="Clustering algorithm to use."),
     ] = ClusteringAlgorithm.SPECTRAL,
     n_clusters: Annotated[
         int,
-        typer.Option(min=2, help="Number of clusters for spectral clustering."),
+        typer.Option(min=2, help="Number of clusters for fixed-count methods."),
     ] = 20,
     dbscan_eps: Annotated[
         float,
         typer.Option(help="Maximum cosine distance between DBSCAN neighbours."),
     ] = 0.5,
-    dbscan_min_samples: Annotated[
+    min_samples: Annotated[
         int,
-        typer.Option(min=1, help="Minimum DBSCAN neighbourhood size."),
+        typer.Option(min=1, help="Minimum sample count for density clustering."),
     ] = 2,
     thumbnail_width: Annotated[
         int,
@@ -146,14 +146,14 @@ def main(
     cluster(
         imcluster_io,
         feature_vectors,
-        algorithm=algorithm,
+        algorithm=clustering,
         n_clusters=n_clusters,
         dbscan_eps=dbscan_eps,
-        dbscan_min_samples=dbscan_min_samples,
+        min_samples=min_samples,
         force=force or force_features or force_cluster,
     )
     imcluster_io.df["model"] = model_name
-    imcluster_io.df["algorithm"] = algorithm.value
+    imcluster_io.df["algorithm"] = clustering.value
     imcluster_io.save()
     generate_thumbnails(
         imcluster_io,
@@ -165,10 +165,10 @@ def main(
     write_html(
         imcluster_io,
         output_html=output_html,
-        cluster_column=f"{algorithm.value}_cluster",
+        cluster_column=f"{clustering.value}_cluster",
         metadata={
             "Model": model_name,
-            "Algorithm": algorithm.value,
+            "Algorithm": clustering.value,
             "Images": str(len(imcluster_io.images)),
         },
     )
