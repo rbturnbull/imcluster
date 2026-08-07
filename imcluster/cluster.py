@@ -1,21 +1,34 @@
+"""Clustering operations for image feature vectors."""
+
+from numpy.typing import ArrayLike
+from rich.console import Console
 from sklearn.cluster import DBSCAN, SpectralClustering
 from sklearn.preprocessing import StandardScaler
 
-
-from rich.console import Console
+from .io import ImclusterIO
 
 console = Console()
-
-from .io import ImclusterIO
 
 
 def cluster(
     imcluster_io: ImclusterIO,
-    feature_vectors,
-    algorithm="SPECTRAL",
+    feature_vectors: ArrayLike,
+    algorithm: str = "SPECTRAL",
     n_clusters: int = 20,
     force: bool = False,
-):
+) -> None:
+    """Assign images to clusters and cache their labels.
+
+    Args:
+        imcluster_io: Image collection and its persisted result table.
+        feature_vectors: Feature matrix with one row per image.
+        algorithm: Clustering algorithm, either ``SPECTRAL`` or ``DBSCAN``.
+        n_clusters: Number of clusters requested for spectral clustering.
+        force: Recompute labels even when the appropriate column already exists.
+
+    Raises:
+        Exception: If ``algorithm`` is not supported.
+    """
 
     algorithm = algorithm.upper()
     if algorithm == "SPECTRAL":

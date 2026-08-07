@@ -39,6 +39,19 @@ def test_max_images_limits_collected_images(tmp_path, image_factory):
     assert store.images == images[:2]
 
 
+def test_invalid_input_prints_message_and_is_not_collected(tmp_path, capsys):
+    invalid = tmp_path / "document.csv"
+    invalid.write_text("not an image", encoding="utf-8")
+
+    store = ImclusterIO([invalid], tmp_path / "results.parquet")
+
+    assert store.images == []
+    assert store.filenames == []
+    assert capsys.readouterr().out == (
+        f"File '{invalid}' does not have a valid extension.\n"
+    )
+
+
 def test_columns_are_saved_to_and_loaded_from_parquet(tmp_path, image_factory):
     image = image_factory("photo.jpg")
     output = tmp_path / "results.parquet"

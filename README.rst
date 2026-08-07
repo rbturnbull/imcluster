@@ -10,4 +10,6 @@ Credits
 ==========
 
 * Robert Turnbull (Melbourne Data Analytics Platform)
-* Zaher Joukhadar (Melbourne Data Analytics Platform)
+
+Zaher Joukhadar was instrumental for the original idea and
+James Quang helped with the implementation of the DINO feature extractor.

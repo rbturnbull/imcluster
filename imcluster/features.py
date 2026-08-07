@@ -1,12 +1,17 @@
-import numpy as np
-from PIL import Image
-from transformers import pipeline
-from rich.progress import track
-from rich.console import Console
+"""Feature extraction using pretrained Hugging Face vision models."""
 
-console = Console()
+from typing import Any
+
+import numpy as np
+from numpy.typing import NDArray
+from PIL import Image
+from rich.console import Console
+from rich.progress import track
+from transformers import pipeline
 
 from .io import ImclusterIO
+
+console = Console()
 
 DEFAULT_MODEL = "facebook/dinov3-convnext-tiny-pretrain-lvd1689m"
 
@@ -15,11 +20,19 @@ def build_features(
     imcluster_io: ImclusterIO,
     model_name: str = DEFAULT_MODEL,
     force: bool = False,
-):
-    """
-    Build feature vectors using a Hugging Face image-feature-extraction model.
+) -> NDArray[Any]:
+    """Build or load normalized image feature vectors.
 
-    Results are cached in a column named after the model.
+    Args:
+        imcluster_io: Image collection and its persisted result table.
+        model_name: Hugging Face image-feature-extraction model identifier.
+        force: Rebuild vectors even when a cached model column exists.
+
+    Returns:
+        A two-dimensional array with one normalized feature vector per image.
+
+    Notes:
+        Results are cached in a column named after ``model_name``.
     """
     model_name = str(model_name)
 
@@ -27,19 +40,26 @@ def build_features(
         console.print("Setting up dataset")
         feature_extractor = pipeline(
             model=model_name,
-            task="image-feature-extraction", 
+            task="image-feature-extraction",
         )
 
-        results = []
-        for path in track(imcluster_io.images, description="Generating feature vectors:"):
+        results: list[NDArray[Any]] = []
+        for path in track(
+            imcluster_io.images,
+            description="Generating feature vectors:",
+        ):
             with Image.open(path) as im:
                 features = feature_extractor(im)
             tokens = np.array(features[0])
             result = tokens.mean(axis=0)
 
             results.append(result)
-        feature_vectors = np.vstack(results)  # stack into shape (n_images, dim)
-        feature_vectors /= np.linalg.norm(feature_vectors, axis=1, keepdims=True)  # row-wise normalization
+        feature_vectors = np.vstack(results)
+        feature_vectors /= np.linalg.norm(
+            feature_vectors,
+            axis=1,
+            keepdims=True,
+        )
 
         imcluster_io.save_column(
             model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])]

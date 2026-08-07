@@ -1,13 +1,29 @@
-from jinja2 import Environment, PackageLoader, select_autoescape
+"""HTML cluster-gallery generation."""
+
 from collections import defaultdict
+from pathlib import Path
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+
 from .io import ImclusterIO
 
 
 def write_html(
     imcluster_io: ImclusterIO,
-    output_html=None,
-    cluster_column="spectral_cluster",
-):
+    output_html: str | Path | None = None,
+    cluster_column: str = "spectral_cluster",
+) -> None:
+    """Write an HTML gallery grouped by cached cluster labels.
+
+    Args:
+        imcluster_io: Image collection containing filenames and thumbnails.
+        output_html: Destination path. Defaults to the Parquet path with an
+            ``.html`` suffix.
+        cluster_column: DataFrame column containing cluster labels.
+
+    Raises:
+        ValueError: If ``cluster_column`` is absent from the result table.
+    """
 
     env = Environment(loader=PackageLoader(__package__), autoescape=select_autoescape())
 
@@ -30,5 +46,5 @@ def write_html(
 
     result = template.render(data=data)
 
-    with open(output_html, "w") as f:
+    with open(output_html, "w", encoding="utf-8") as f:
         f.write(result)

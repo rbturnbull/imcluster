@@ -1,6 +1,9 @@
-import typer
-from typing import List, Optional
+"""Command-line entry point for the imcluster pipeline."""
+
 from pathlib import Path
+from typing import List, Optional
+
+import typer
 
 from .io import ImclusterIO
 from .features import DEFAULT_MODEL, build_features
@@ -18,24 +21,42 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    inputs:List[Path],
-    output_df:Path,
-    output_html:Optional[Path] = None,
-    model:str = typer.Option(
+    inputs: List[Path],
+    output_df: Path,
+    output_html: Optional[Path] = None,
+    model: str = typer.Option(
         DEFAULT_MODEL,
         help="Hugging Face image-feature-extraction model name.",
     ),
-    max_images:int = None,
-    algorithm:str = "SPECTRAL",
-    n_clusters:int = 20,
-    thumbnail_width:int = 256,
-    thumbnail_height:int = 256,
-    force:bool = False,
-    force_features:bool = False,
-    force_pca:bool = False,
-    force_cluster:bool = False,
-    force_thumbnails:bool = False,
-): 
+    max_images: Optional[int] = None,
+    algorithm: str = "SPECTRAL",
+    n_clusters: int = 20,
+    thumbnail_width: int = 256,
+    thumbnail_height: int = 256,
+    force: bool = False,
+    force_features: bool = False,
+    force_pca: bool = False,
+    force_cluster: bool = False,
+    force_thumbnails: bool = False,
+) -> None:
+    """Cluster images and write cached Parquet data and an HTML gallery.
+
+    Args:
+        inputs: Image files, directories, or text manifests to process.
+        output_df: Destination Parquet file for cached results.
+        output_html: Optional destination for the HTML gallery.
+        model: Hugging Face image-feature-extraction model identifier.
+        max_images: Optional limit on the number of input images.
+        algorithm: Clustering algorithm, either ``SPECTRAL`` or ``DBSCAN``.
+        n_clusters: Number of clusters requested for spectral clustering.
+        thumbnail_width: Maximum generated thumbnail width in pixels.
+        thumbnail_height: Maximum generated thumbnail height in pixels.
+        force: Recompute all cached stages.
+        force_features: Recompute feature vectors and downstream stages.
+        force_pca: Recompute PCA coordinates.
+        force_cluster: Recompute cluster labels.
+        force_thumbnails: Regenerate cached thumbnails.
+    """
     imcluster_io = ImclusterIO(inputs, output_df, max_images=max_images)
     feature_vectors = build_features(
         imcluster_io, model_name=model, force=force or force_features
