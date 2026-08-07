@@ -1,0 +1,6 @@
+[run]
+source = imcluster
+
+[report]
+precision = 2
+
