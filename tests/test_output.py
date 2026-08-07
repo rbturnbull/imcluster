@@ -40,9 +40,7 @@ def test_generate_thumbnail_rejects_unreadable_image(tmp_path):
         generate_thumbnail(source, width=10, height=10)
 
 
-def test_generate_thumbnails_generates_and_persists_thumbnails(
-    tmp_path, image_factory
-):
+def test_generate_thumbnails_generates_and_persists_thumbnails(tmp_path, image_factory):
     store = ImclusterIO(
         [image_factory("one.jpg"), image_factory("two.jpg")],
         tmp_path / "results.parquet",
@@ -93,9 +91,7 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
         'href="https://huggingface.co/'
         'facebook/dinov3-vitb16-pretrain-lvd1689m"' in rendered
     )
-    assert (
-        'href="https://scikit-learn.org/stable/modules/clustering.html"' in rendered
-    )
+    assert 'href="https://scikit-learn.org/stable/modules/clustering.html"' in rendered
     assert "cdn.jsdelivr.net" not in rendered
 
 

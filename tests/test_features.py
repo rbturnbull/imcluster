@@ -138,9 +138,7 @@ def test_build_features_rejects_zero_embedding(tmp_path, image_factory, monkeypa
         build_features(store, device=Device.CPU)
 
 
-def test_build_features_rejects_unreadable_image(
-    tmp_path, image_factory, monkeypatch
-):
+def test_build_features_rejects_unreadable_image(tmp_path, image_factory, monkeypatch):
     image = image_factory("broken.jpg")
     store = ImclusterIO([image], tmp_path / "results.parquet")
     image.write_bytes(b"not an image")

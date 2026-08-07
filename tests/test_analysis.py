@@ -28,14 +28,10 @@ def test_dbscan_clustering_saves_labels(tmp_path, image_factory):
 
 
 @pytest.mark.parametrize("algorithm", ["kmeans", "agglomerative", "hierarchical"])
-def test_fixed_count_clustering_methods_save_labels(
-    algorithm, tmp_path, image_factory
-):
+def test_fixed_count_clustering_methods_save_labels(algorithm, tmp_path, image_factory):
     images = [image_factory(f"{index}.jpg") for index in range(4)]
     store = ImclusterIO(images, tmp_path / "results.parquet")
-    features = np.array(
-        [[1.0, 0.0], [0.99, 0.01], [0.0, 1.0], [0.01, 0.99]]
-    )
+    features = np.array([[1.0, 0.0], [0.99, 0.01], [0.0, 1.0], [0.01, 0.99]])
 
     cluster(store, features, algorithm=algorithm, n_clusters=2)
 
@@ -130,9 +126,7 @@ def test_unknown_clustering_algorithm_is_rejected(tmp_path, image_factory):
     "features",
     [np.array([1.0, 2.0]), np.array([[1.0]])],
 )
-def test_feature_vectors_must_have_one_row_per_image(
-    features, tmp_path, image_factory
-):
+def test_feature_vectors_must_have_one_row_per_image(features, tmp_path, image_factory):
     store = ImclusterIO(
         [image_factory("one.jpg"), image_factory("two.jpg")],
         tmp_path / "results.parquet",
