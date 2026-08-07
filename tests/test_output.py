@@ -19,6 +19,16 @@ def test_generate_thumbnail_returns_bounded_jpeg(image_factory):
     assert thumbnail.size == (20, 10)
 
 
+def test_generate_thumbnail_converts_rgba_to_jpeg(tmp_path):
+    source = tmp_path / "transparent.png"
+    Image.new("RGBA", (10, 10), (255, 0, 0, 100)).save(source)
+
+    encoded = generate_thumbnail(source, width=10, height=10)
+    thumbnail = Image.open(BytesIO(base64.b64decode(encoded)))
+
+    assert thumbnail.mode == "RGB"
+
+
 def test_plot_generates_and_persists_thumbnails(tmp_path, image_factory):
     store = ImclusterIO(
         [image_factory("one.jpg"), image_factory("two.jpg")],
@@ -48,6 +58,8 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert "encoded-thumbnail" in rendered
     assert "&lt;script&gt;alert(1)&lt;/script&gt;.jpg" in rendered
     assert "<script>alert(1)</script>.jpg" not in rendered
+    assert "data:image/jpeg;base64," in rendered
+    assert "cdn.jsdelivr.net" not in rendered
 
 
 def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):
@@ -58,7 +70,7 @@ def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):
 
     write_html(store, output, cluster_column="dbscan_cluster")
 
-    assert "Cluster -1" in output.read_text()
+    assert "Noise" in output.read_text()
 
 
 def test_write_html_defaults_beside_parquet_output(tmp_path, image_factory):

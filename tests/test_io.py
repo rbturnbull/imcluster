@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import pandas as pd
+import pytest
 
 from imcluster.io import ImclusterIO, valid_image
 
@@ -39,6 +38,50 @@ def test_max_images_limits_collected_images(tmp_path, image_factory):
     assert store.images == images[:2]
 
 
+def test_directory_search_is_not_recursive_by_default(tmp_path, image_factory):
+    direct = image_factory("images/direct.jpg")
+    image_factory("images/nested/child.jpg")
+
+    store = ImclusterIO([direct.parent], tmp_path / "results.parquet")
+
+    assert store.images == [direct]
+
+
+def test_recursive_directory_search_collects_nested_images(tmp_path, image_factory):
+    direct = image_factory("images/direct.jpg")
+    nested = image_factory("images/one/two/nested.jpg")
+
+    store = ImclusterIO(
+        [direct.parent],
+        tmp_path / "results.parquet",
+        recursive=True,
+    )
+
+    assert set(store.images) == {direct, nested}
+
+
+def test_directory_images_are_sorted_and_duplicates_removed(tmp_path, image_factory):
+    second = image_factory("images/b.jpg")
+    first = image_factory("images/a.jpg")
+
+    store = ImclusterIO(
+        [first.parent, second],
+        tmp_path / "results.parquet",
+    )
+
+    assert store.images == [first.resolve(), second.resolve()]
+
+
+def test_manifest_paths_are_relative_to_manifest(tmp_path, image_factory):
+    image = image_factory("collection/image.jpg")
+    manifest = image.parent / "images.txt"
+    manifest.write_text("image.jpg\n", encoding="utf-8")
+
+    store = ImclusterIO([manifest], tmp_path / "results.parquet")
+
+    assert store.images == [image.resolve()]
+
+
 def test_invalid_input_prints_message_and_is_not_collected(tmp_path, capsys):
     invalid = tmp_path / "document.csv"
     invalid.write_text("not an image", encoding="utf-8")
@@ -65,4 +108,26 @@ def test_columns_are_saved_to_and_loaded_from_parquet(tmp_path, image_factory):
         loaded.get_column("score"), pd.Series([0.75], name="score")
     )
     assert loaded.has_column("score")
-    assert loaded.get_all_columns() == ["filenames", "score"]
+    assert loaded.get_all_columns() == ["path", "filenames", "score"]
+
+
+def test_cache_must_match_current_images(tmp_path, image_factory):
+    first = image_factory("first.jpg")
+    second = image_factory("second.jpg")
+    output = tmp_path / "results.parquet"
+    ImclusterIO([first], output).save()
+
+    with pytest.raises(ValueError, match="do not match the current image inputs"):
+        ImclusterIO([second], output)
+
+
+def test_reset_cache_accepts_changed_images(tmp_path, image_factory):
+    first = image_factory("first.jpg")
+    second = image_factory("second.jpg")
+    output = tmp_path / "results.parquet"
+    ImclusterIO([first], output).save()
+
+    store = ImclusterIO([second], output, reset_cache=True)
+
+    assert store.images == [second.resolve()]
+    assert store.get_all_columns() == ["path", "filenames"]

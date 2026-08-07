@@ -1,7 +1,8 @@
 """Image input discovery and Parquet-backed result persistence."""
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import pandas as pd
 
@@ -31,6 +32,8 @@ class ImclusterIO:
         output: Parquet file used to persist intermediate and final results.
         max_images: Optional maximum number of images to retain. Zero or
             ``None`` means unlimited.
+        recursive: Search within nested subdirectories of directory inputs.
+        reset_cache: Discard an existing cache instead of loading it.
     """
 
     def __init__(
@@ -38,39 +41,53 @@ class ImclusterIO:
         inputs: Iterable[str | Path],
         output: str | Path,
         max_images: int | None = None,
+        recursive: bool = False,
+        reset_cache: bool = False,
     ) -> None:
         """Initialize an image collection and load any cached results."""
         self.output: Path = Path(output)
 
-        # Copy image paths into a list
-        self.images: list[Path] = []
+        discovered: list[Path] = []
         for path in inputs:
-            path = Path(path)
+            path = Path(path).expanduser()
 
-            # If it is a text file, then read each line as an image
             if path.is_dir():
-                self.images += [x for x in path.iterdir() if valid_image(x)]
+                candidates = path.rglob("*") if recursive else path.iterdir()
+                discovered.extend(sorted(x for x in candidates if valid_image(x)))
             elif path.suffix.lower() == ".txt":
                 with open(path, encoding="utf-8") as f:
-                    paths_in_file = [Path(line.strip()) for line in f.readlines()]
-                    self.images += [x for x in paths_in_file if valid_image(x)]
+                    for line in f:
+                        value = line.strip()
+                        if not value:
+                            continue
+                        candidate = Path(value).expanduser()
+                        if not candidate.is_absolute():
+                            candidate = path.parent / candidate
+                        if valid_image(candidate):
+                            discovered.append(candidate)
             elif valid_image(path):
-                self.images.append(path)
+                discovered.append(path)
             else:
                 print(f"File '{path}' does not have a valid extension.")
 
-        # truncate list of images if the user sets the maximum allowed
+        # Resolve paths and remove duplicates without changing input order.
+        self.images = list(dict.fromkeys(image.resolve() for image in discovered))
+
         if max_images and len(self.images) > max_images:
             self.images = self.images[:max_images]
 
         self.filenames: list[str] = [image.name for image in self.images]
+        self.paths: list[str] = [str(image) for image in self.images]
 
-        if self.output.exists():
-            df = pd.read_parquet(self.output, engine="pyarrow")
-
-            # TODO check that the filenames are the same as the list
+        if self.output.exists() and not reset_cache:
+            df = pd.read_parquet(self.output)
+            if "path" not in df or df["path"].tolist() != self.paths:
+                raise ValueError(
+                    f"Cached results in '{self.output}' do not match the current "
+                    "image inputs. Use --force to replace the cache."
+                )
         else:
-            df = pd.Series(self.filenames, name="filenames").to_frame()
+            df = pd.DataFrame({"path": self.paths, "filenames": self.filenames})
 
         self.df: pd.DataFrame = df
 

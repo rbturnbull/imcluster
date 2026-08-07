@@ -1,21 +1,16 @@
-.. imcluster documentation master file, created by
-   sphinx-quickstart on Fri Mar 25 15:27:47 2022.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+=======================
+imcluster documentation
+=======================
 
-Welcome to imcluster's documentation!
-=====================================
+``imcluster`` clusters image collections using pretrained vision features and
+creates a cached dataset plus a standalone HTML report.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
 
+   usage
+   models
    cli
+   development
    references
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

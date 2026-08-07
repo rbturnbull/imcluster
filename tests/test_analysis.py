@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from imcluster.cluster import cluster, console
 from imcluster.io import ImclusterIO
@@ -97,6 +98,26 @@ def test_unknown_clustering_algorithm_is_rejected(tmp_path, image_factory):
     try:
         cluster(store, np.array([[1.0]]), algorithm="unknown")
     except Exception as error:
-        assert "UNKNOWN" in str(error)
+        assert "unknown" in str(error)
     else:
         raise AssertionError("unknown clustering algorithm was accepted")
+
+
+def test_spectral_cluster_count_cannot_exceed_images(tmp_path, image_factory):
+    store = ImclusterIO(
+        [image_factory("one.jpg"), image_factory("two.jpg")],
+        tmp_path / "results.parquet",
+    )
+
+    with pytest.raises(ValueError, match="cannot exceed"):
+        cluster(store, np.array([[1.0], [2.0]]), n_clusters=3)
+
+
+def test_dbscan_parameters_are_validated(tmp_path, image_factory):
+    store = ImclusterIO(
+        [image_factory("one.jpg"), image_factory("two.jpg")],
+        tmp_path / "results.parquet",
+    )
+
+    with pytest.raises(ValueError, match="dbscan_eps"):
+        cluster(store, np.array([[1.0], [2.0]]), algorithm="dbscan", dbscan_eps=0)
