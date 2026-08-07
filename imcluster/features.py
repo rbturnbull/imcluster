@@ -49,9 +49,8 @@ def build_features(
             description="Generating feature vectors:",
         ):
             with Image.open(path) as im:
-                features = feature_extractor(im)
-            tokens = np.array(features[0])
-            result = tokens.mean(axis=0)
+                features = feature_extractor(im, pool=True)
+            result = np.asarray(features[0])
 
             results.append(result)
         feature_vectors = np.vstack(results)

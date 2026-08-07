@@ -5,9 +5,13 @@ from imcluster.io import ImclusterIO
 
 
 class FakeExtractor:
-    def __call__(self, image):
-        # One batch containing two token embeddings.
-        return [[[3.0, 4.0], [3.0, 4.0]]]
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, image, **kwargs):
+        self.calls.append(kwargs)
+        # One batch containing one pooled image embedding.
+        return [[[3.0, 4.0]]]
 
 
 def test_build_features_normalizes_and_caches_vectors(
@@ -16,10 +20,11 @@ def test_build_features_normalizes_and_caches_vectors(
     images = [image_factory("one.jpg"), image_factory("two.jpg")]
     store = ImclusterIO(images, tmp_path / "results.parquet")
     calls = []
+    extractor = FakeExtractor()
 
     def fake_pipeline(**kwargs):
         calls.append(kwargs)
-        return FakeExtractor()
+        return extractor
 
     monkeypatch.setattr("imcluster.features.pipeline", fake_pipeline)
 
@@ -31,3 +36,4 @@ def test_build_features_normalizes_and_caches_vectors(
     assert len(calls) == 1
     assert calls[0]["task"] == "image-feature-extraction"
     assert calls[0]["model"] == "test-model"
+    assert extractor.calls == [{"pool": True}, {"pool": True}]
