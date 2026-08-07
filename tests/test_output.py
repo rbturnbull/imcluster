@@ -1,6 +1,7 @@
 import base64
 from io import BytesIO
 
+import pytest
 from PIL import Image
 
 from imcluster.html import write_html
@@ -68,3 +69,13 @@ def test_write_html_defaults_beside_parquet_output(tmp_path, image_factory):
     write_html(store)
 
     assert (tmp_path / "results.html").is_file()
+
+
+def test_write_html_rejects_missing_cluster_column(tmp_path, image_factory):
+    store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
+
+    with pytest.raises(
+        ValueError,
+        match="^Missing clustering results column: dbscan_cluster$",
+    ):
+        write_html(store, cluster_column="dbscan_cluster")
