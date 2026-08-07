@@ -42,5 +42,5 @@ Cache options
 =============
 
 ``--force`` replaces every cached stage. ``--force-features``,
-``--force-pca``, ``--force-cluster``, and ``--force-thumbnails`` recompute
+``--force-cluster``, and ``--force-thumbnails`` recompute
 individual stages and their required downstream results.

@@ -31,7 +31,7 @@ def generate_thumbnail(path: str | Path, width: int, height: int) -> str:
     return base64.b64encode(buffered.getvalue()).decode("ascii")
 
 
-def plot(
+def generate_thumbnails(
     imcluster_io: ImclusterIO,
     thumbnail_width: int = 256,
     thumbnail_height: int = 256,

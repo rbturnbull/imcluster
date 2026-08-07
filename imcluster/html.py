@@ -1,8 +1,10 @@
 """HTML cluster-gallery generation."""
 
+import base64
 from collections import defaultdict
 from collections.abc import Mapping
 from datetime import datetime, timezone
+from importlib.resources import files
 from pathlib import Path
 
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -61,7 +63,10 @@ def write_html(
     report_metadata["Generated"] = datetime.now(timezone.utc).strftime(
         "%Y-%m-%d %H:%M UTC"
     )
-    result = template.render(data=data, metadata=report_metadata)
+    header = base64.b64encode(
+        files("imcluster").joinpath("assets/imcluster-header.png").read_bytes()
+    ).decode("ascii")
+    result = template.render(data=data, metadata=report_metadata, header=header)
 
     with open(output_html, "w", encoding="utf-8") as f:
         f.write(result)

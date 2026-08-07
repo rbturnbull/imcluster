@@ -3,37 +3,6 @@ import pytest
 
 from imcluster.cluster import cluster, console
 from imcluster.io import ImclusterIO
-from imcluster.pca import console as pca_console
-from imcluster.pca import fit_pca
-
-
-def test_pca_saves_two_components(tmp_path, image_factory):
-    images = [image_factory(f"{index}.jpg") for index in range(3)]
-    store = ImclusterIO(images, tmp_path / "results.parquet")
-    features = np.array([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
-
-    fit_pca(store, features)
-
-    assert store.has_column("pca0")
-    assert store.has_column("pca1")
-    assert len(store.get_column("pca0")) == 3
-
-
-def test_pca_uses_precomputed_components(tmp_path, image_factory, monkeypatch):
-    store = ImclusterIO(
-        [image_factory("one.jpg"), image_factory("two.jpg")],
-        tmp_path / "results.parquet",
-    )
-    store.save_column("pca0", [1.0, 2.0], autosave=False)
-    store.save_column("pca1", [3.0, 4.0])
-    messages = []
-    monkeypatch.setattr(pca_console, "print", messages.append)
-
-    fit_pca(store, np.empty((2, 0)))
-
-    assert store.get_column("pca0").tolist() == [1.0, 2.0]
-    assert store.get_column("pca1").tolist() == [3.0, 4.0]
-    assert messages == ["Using precomputed PCA"]
 
 
 def test_spectral_clustering_saves_labels(tmp_path, image_factory):

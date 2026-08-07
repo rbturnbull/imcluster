@@ -1,6 +1,6 @@
-=========
-imcluster
-=========
+.. image:: docs/assets/imcluster-banner.png
+   :alt: imcluster
+   :align: center
 
 ``imcluster`` groups image collections using normalized features from pretrained
 vision models. It produces a reusable Parquet cache and a self-contained HTML
@@ -42,15 +42,15 @@ manifest's directory. Supported formats are PNG, JPEG, TIFF, BMP, and GIF.
 Outputs
 -------
 
-The Parquet output contains resolved paths, filenames, feature vectors, PCA
-coordinates, cluster labels, thumbnails, and run metadata. It is also used as a
+The Parquet output contains resolved paths, filenames, feature vectors, cluster
+labels, thumbnails, and run metadata. It is also used as a
 cache on subsequent runs. The HTML output is a standalone gallery: it embeds
 its styles and JPEG thumbnails and does not require an internet connection.
 
 If the input list no longer matches an existing cache, ``imcluster`` stops with
 a clear error. Pass ``--force`` to intentionally replace the cache. More
-targeted controls are available as ``--force-features``, ``--force-pca``,
-``--force-cluster``, and ``--force-thumbnails``.
+targeted controls are available as ``--force-features``, ``--force-cluster``,
+and ``--force-thumbnails``.
 
 Models
 ======

@@ -26,9 +26,10 @@ def test_cli_uses_default_vit_base_model(tmp_path, image_factory, monkeypatch):
         return [[1.0], [2.0]]
 
     monkeypatch.setattr("imcluster.main.build_features", fake_build_features)
-    monkeypatch.setattr("imcluster.main.fit_pca", lambda *args, **kwargs: None)
     monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
-    monkeypatch.setattr("imcluster.main.plot", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
 
     result = CliRunner().invoke(
@@ -49,9 +50,10 @@ def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monke
         return [[1.0], [2.0]]
 
     monkeypatch.setattr("imcluster.main.build_features", fake_build_features)
-    monkeypatch.setattr("imcluster.main.fit_pca", lambda *args, **kwargs: None)
     monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
-    monkeypatch.setattr("imcluster.main.plot", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
     monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
 
     result = CliRunner().invoke(
@@ -101,13 +103,14 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
     monkeypatch.setattr(
         "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
     )
-    monkeypatch.setattr("imcluster.main.fit_pca", lambda *args, **kwargs: None)
 
     def fake_cluster(*args, **kwargs):
         observed["algorithm"] = kwargs["algorithm"]
 
     monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
-    monkeypatch.setattr("imcluster.main.plot", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
 
     def fake_write_html(*args, **kwargs):
         observed.update(kwargs)

@@ -16,8 +16,7 @@ from .features import (
 )
 from .html import write_html
 from .io import ImclusterIO
-from .pca import fit_pca
-from .plotting import plot
+from .thumbnails import generate_thumbnails
 
 console = Console()
 
@@ -103,10 +102,6 @@ def main(
         bool,
         typer.Option(help="Recompute feature vectors and downstream stages."),
     ] = False,
-    force_pca: Annotated[
-        bool,
-        typer.Option(help="Recompute PCA coordinates."),
-    ] = False,
     force_cluster: Annotated[
         bool,
         typer.Option(help="Recompute cluster labels."),
@@ -148,8 +143,6 @@ def main(
         batch_size=batch_size,
         force=force or force_features,
     )
-    fit_pca(imcluster_io, feature_vectors, force=force or force_features or force_pca)
-
     cluster(
         imcluster_io,
         feature_vectors,
@@ -162,7 +155,7 @@ def main(
     imcluster_io.df["model"] = model_name
     imcluster_io.df["algorithm"] = algorithm.value
     imcluster_io.save()
-    plot(
+    generate_thumbnails(
         imcluster_io,
         thumbnail_height=thumbnail_height,
         thumbnail_width=thumbnail_width,

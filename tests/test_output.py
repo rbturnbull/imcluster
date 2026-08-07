@@ -6,7 +6,7 @@ from PIL import Image
 
 from imcluster.html import write_html
 from imcluster.io import ImclusterIO
-from imcluster.plotting import generate_thumbnail, plot
+from imcluster.thumbnails import generate_thumbnail, generate_thumbnails
 
 
 def test_generate_thumbnail_returns_bounded_jpeg(image_factory):
@@ -29,13 +29,15 @@ def test_generate_thumbnail_converts_rgba_to_jpeg(tmp_path):
     assert thumbnail.mode == "RGB"
 
 
-def test_plot_generates_and_persists_thumbnails(tmp_path, image_factory):
+def test_generate_thumbnails_generates_and_persists_thumbnails(
+    tmp_path, image_factory
+):
     store = ImclusterIO(
         [image_factory("one.jpg"), image_factory("two.jpg")],
         tmp_path / "results.parquet",
     )
 
-    plot(store, thumbnail_width=10, thumbnail_height=10)
+    generate_thumbnails(store, thumbnail_width=10, thumbnail_height=10)
 
     assert store.has_column("thumbnail")
     assert len(store.get_column("thumbnail")) == 2
@@ -54,11 +56,18 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     write_html(store, output)
     rendered = output.read_text()
 
-    assert "Cluster 3" in rendered
+    assert "Cluster 4" in rendered
+    assert 'aria-label="Cluster table of contents"' in rendered
+    assert 'href="#cluster-4"' in rendered
+    assert 'id="cluster-4"' in rendered
+    assert rendered.count('<span class="badge">1</span>') == 2
+    assert "Cluster 4 (1)" not in rendered
     assert "encoded-thumbnail" in rendered
     assert "&lt;script&gt;alert(1)&lt;/script&gt;.jpg" in rendered
     assert "<script>alert(1)</script>.jpg" not in rendered
     assert "data:image/jpeg;base64," in rendered
+    assert "data:image/png;base64," in rendered
+    assert 'class="report-header"' in rendered
     assert "cdn.jsdelivr.net" not in rendered
 
 
