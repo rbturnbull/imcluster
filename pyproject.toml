@@ -68,10 +68,15 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.mypy]
 check_untyped_defs = true
 ignore_missing_imports = true
+mypy_path = ["typings"]
 packages = ["imcluster"]
 python_version = "3.10"
 warn_redundant_casts = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
 
 [build-system]
 requires = ["poetry-core>=2.0"]
