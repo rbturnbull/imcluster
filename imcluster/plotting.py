@@ -1,64 +1,65 @@
+"""Thumbnail generation for cluster reports."""
+
 import base64
 from io import BytesIO
-from PIL import Image
-from bokeh.palettes import Spectral6
-from bokeh.plotting import figure, output_file, show
-from rich.console import Console
+from pathlib import Path
 
-console = Console()
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 from .io import ImclusterIO
 
 
-def generate_thumbnail(path):
-    im = Image.open(path)
-    size = 256, 256
-    im.thumbnail(size, Image.ANTIALIAS)
-    buffered = BytesIO()
-    im.save(buffered, format="JPEG")
+def generate_thumbnail(path: str | Path, width: int, height: int) -> str:
+    """Create a base64-encoded JPEG thumbnail bounded by given dimensions.
+
+    Args:
+        path: Source image path.
+        width: Maximum thumbnail width in pixels.
+        height: Maximum thumbnail height in pixels.
+
+    Returns:
+        ASCII base64 data for the generated JPEG.
+    """
+    try:
+        with Image.open(path) as source:
+            image = ImageOps.exif_transpose(source).convert("RGB")
+            image.thumbnail((width, height), Image.Resampling.LANCZOS)
+            buffered = BytesIO()
+            image.save(buffered, format="JPEG")
+    except (OSError, UnidentifiedImageError) as error:
+        raise ValueError(f"Cannot create thumbnail for '{path}': {error}") from error
     return base64.b64encode(buffered.getvalue()).decode("ascii")
 
 
 def plot(
     imcluster_io: ImclusterIO,
-    output_html=None,
-    width=1200,
-    height=700,
-    size=12,
-    alpha=0.5,
+    thumbnail_width: int = 256,
+    thumbnail_height: int = 256,
     force: bool = False,
-):
-    """
-    Plot the principle components with tooltips showing the images.
-    """
+    force_thumbnails: bool = False,
+) -> None:
+    """Generate and cache thumbnails used by the HTML cluster report.
 
-    if not output_html:
-        output_html = imcluster_io.output.with_suffix(".html")
-
-    output_file(output_html)
-    TOOLTIPS = """
-    <div>
-        <p>@filenames</p>
-        <p>Cluster: @cluster</p>
-        <img src="data:image/png;base64, @thumbnail{safe}" alt="Thumbnail" />
-    </div>
+    Args:
+        imcluster_io: Image collection and its persisted result table.
+        thumbnail_width: Maximum thumbnail width in pixels.
+        thumbnail_height: Maximum thumbnail height in pixels.
+        force: Regenerate thumbnails regardless of cached data.
+        force_thumbnails: Regenerate only the thumbnail cache.
     """
 
-    imcluster_io.df["path"] = [str(x) for x in imcluster_io.images]
-    if not imcluster_io.has_column("thumbnail") or force:
+    if not imcluster_io.has_column("thumbnail") or force or force_thumbnails:
+        print(
+            f"Generating thumbnails within box ({thumbnail_width}x{thumbnail_height})"
+        )
         imcluster_io.save_column(
             "thumbnail",
-            imcluster_io.df.apply(lambda row: generate_thumbnail(row["path"]), axis=1),
+            imcluster_io.df.apply(
+                lambda row: generate_thumbnail(
+                    row["path"],
+                    thumbnail_width,
+                    thumbnail_height,
+                ),
+                axis=1,
+            ),
         )
-
-    return
-    cmap = Spectral6
-    imcluster_io.df["color"] = imcluster_io.df.apply(
-        lambda row: cmap[row["dbscan_cluster"] % len(cmap)], axis=1
-    )
-
-    p = figure(width=width, height=height, tooltips=TOOLTIPS)
-    p.circle(
-        "pca0", "pca1", source=imcluster_io.df, size=size, color="color", alpha=alpha
-    )
-    show(p)

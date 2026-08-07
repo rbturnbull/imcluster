@@ -1,54 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    <head>
-        <title>Clusters</title>
-        <link rel="stylesheet"
-              href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/cosmo/bootstrap.min.css"
-              integrity="sha384-5QFXyVb+lrCzdN228VS3HmzpiE7ZVwLQtkt+0d9W43LQMzz4HBnnqvVxKg6O+04d"
-              crossorigin="anonymous">
-    </head>
-    <body>
-        <h1>Clusters</h1>
-        <div class="container">
-                <div class="row">
-                    <div class="col-3">
-                        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            {% for key in data %}
-                                <a class="nav-link {% if loop.first %}active{% endif %}"
-                                    data-toggle="pill"
-                                    href="#v-pills-{{ key }}"
-                                    role="tab"
-                                    aria-controls="v-pills-{{ key }}"
-                                    aria-selected="{% if loop.first %}true{%else%}false{% endif %}">Cluster {{ key }}</a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="col-9">
-                        <div class="tab-content" id="v-pills-tabContent">
-
-                            {% for key, items in data.items() %}
-                            <div class="tab-pane fade {% if loop.first %}show active{% endif %}"
-                                 id="v-pills-{{ key }}"
-                                 role="tabpanel"
-                                 aria-labelledby="v-pills-tab-{{ key }}">
-                                <h2>Cluster {{ key }}</h2>
-                                {% for item in items %}
-                                    <img src="data:image/png;base64, {{item.thumbnail}}" alt="Thumbnail" width="100px" data-toggle="tooltip" data-html="true" data-placement="bottom" title="{{item.filename}}"/>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-        
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>imcluster report</title>
+    <style>
+      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+      body { margin: 0 auto; max-width: 96rem; padding: 2rem; }
+      h1 { margin-bottom: .5rem; }
+      .metadata { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-bottom: 2rem; }
+      .metadata span { white-space: nowrap; }
+      details { border-top: 1px solid #8886; padding: 1rem 0; }
+      summary { cursor: pointer; font-size: 1.25rem; font-weight: 650; }
+      .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); margin-top: 1rem; }
+      figure { margin: 0; min-width: 0; }
+      img { background: #8882; border-radius: .35rem; display: block; height: 12rem; object-fit: contain; width: 100%; }
+      figcaption { font-size: .85rem; overflow-wrap: anywhere; padding-top: .35rem; }
+      .path { color: #777; display: block; font-size: .75rem; }
+    </style>
+  </head>
+  <body>
+    <h1>imcluster report</h1>
+    <div class="metadata">
+      {% for key, value in metadata.items() %}<span><strong>{{ key }}:</strong> {{ value }}</span>{% endfor %}
+    </div>
+    {% for key, items in data.items() %}
+      <details open>
+        <summary>{% if key == -1 %}Noise{% else %}Cluster {{ key }}{% endif %} ({{ items|length }})</summary>
+        <div class="grid">
+          {% for item in items %}
+            <figure>
+              <img src="data:image/jpeg;base64,{{ item.thumbnail }}" alt="Thumbnail of {{ item.filename }}" loading="lazy">
+              <figcaption>{{ item.filename }}<span class="path">{{ item.path }}</span></figcaption>
+            </figure>
+          {% endfor %}
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
-        <script>
-            $(function () {
-                $('[data-toggle="tooltip"]').tooltip()
-            })              
-        </script>
-    </body>
+      </details>
+    {% endfor %}
+  </body>
 </html>
