@@ -1,13 +1,33 @@
 import numpy as np
+from rich.text import Text
 from typer.testing import CliRunner
 
 from imcluster.io import ImclusterIO
 from imcluster.main import app
 
 
+def plain_output(result) -> str:
+    """Return CLI output without terminal styling or layout wrapping."""
+    text = Text.from_ansi(result.output).plain
+    text = "".join(" " if "\u2500" <= char <= "\u257f" else char for char in text)
+    return " ".join(text.split())
+
+
+def invoke_cli(app, args, **kwargs):
+    """Invoke the CLI with deterministic terminal rendering."""
+    kwargs.setdefault("color", False)
+    kwargs.setdefault("terminal_width", 240)
+    return CliRunner().invoke(app, args, **kwargs)
+
+
 def test_cli_help_is_available():
-    result = CliRunner().invoke(app, ["--help"], color=False)
-    help_text = result.stdout
+    result = invoke_cli(
+        app,
+        ["--help"],
+        color=False,
+        terminal_width=240,
+    )
+    help_text = plain_output(result)
 
     assert result.exit_code == 0
     assert "inputs" in help_text.lower()
@@ -32,7 +52,7 @@ def test_cli_uses_default_vit_base_model(tmp_path, image_factory, monkeypatch):
     )
     monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [*(str(image) for image in images), str(tmp_path / "results.parquet")],
     )
@@ -56,7 +76,7 @@ def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monke
     )
     monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [
             *(str(image) for image in images),
@@ -77,7 +97,7 @@ def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monke
 def test_cli_rejects_unavailable_convnext_size(tmp_path, image_factory):
     image = image_factory("image.jpg")
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [
             str(image),
@@ -89,9 +109,10 @@ def test_cli_rejects_unavailable_convnext_size(tmp_path, image_factory):
         ],
     )
 
+    output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Size 'huge' is not available for architecture" in result.output
-    assert "'convnext'" in result.output
+    assert "Size 'huge' is not available for architecture" in output_text
+    assert "'convnext'" in output_text
 
 
 def test_cli_rejects_cache_for_different_images(tmp_path, image_factory):
@@ -103,41 +124,46 @@ def test_cli_rejects_cache_for_different_images(tmp_path, image_factory):
     output = tmp_path / "results.parquet"
     ImclusterIO(cached_images, output).save()
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [*(str(image) for image in requested_images), str(output)],
+        color=False,
+        terminal_width=240,
     )
 
+    output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Invalid value for output_df" in result.output
-    assert "--force" in result.output
+    assert "Invalid value for output_df" in output_text
+    assert "--force" in output_text
 
 
 def test_cli_rejects_input_without_valid_images(tmp_path):
     empty_directory = tmp_path / "empty"
     empty_directory.mkdir()
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [str(empty_directory), str(tmp_path / "results.parquet")],
     )
 
+    output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Invalid value for inputs" in result.output
-    assert "No valid input images were found" in result.output
+    assert "Invalid value for inputs" in output_text
+    assert "No valid input images were found" in output_text
 
 
 def test_cli_requires_at_least_two_images(tmp_path, image_factory):
     image = image_factory("only.jpg")
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [str(image), str(tmp_path / "results.parquet")],
     )
 
+    output_text = plain_output(result)
     assert result.exit_code == 2
-    assert "Invalid value for inputs" in result.output
-    assert "At least two images are required" in result.output
+    assert "Invalid value for inputs" in output_text
+    assert "At least two images are required" in output_text
 
 
 def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monkeypatch):
@@ -163,7 +189,7 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
 
     monkeypatch.setattr("imcluster.main.write_html", fake_write_html)
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [
             *(str(image) for image in images),
@@ -199,7 +225,7 @@ def test_cli_runs_local_pipeline_and_writes_requested_files(
         "imcluster.main.build_features", lambda *args, **kwargs: features
     )
 
-    result = CliRunner().invoke(
+    result = invoke_cli(
         app,
         [
             *(str(image) for image in images),
