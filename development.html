@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>imcluster documentation &mdash; imcluster 0.2.0 documentation</title>
+  <title>Development &mdash; imcluster 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,7 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Usage" href="usage.html" /> 
+    <link rel="next" title="References" href="references.html" />
+    <link rel="prev" title="Command-line reference" href="cli.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -30,7 +31,7 @@
 
           
           
-          <a href="#" class="icon icon-home">
+          <a href="index.html" class="icon icon-home">
             imcluster
           </a>
 <div role="search">
@@ -42,11 +43,11 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command-line reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 
@@ -56,17 +57,17 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">imcluster</a>
+          <a href="index.html">imcluster</a>
       </nav>
 
       <div class="wy-nav-content">
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">imcluster documentation</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Development</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -74,37 +75,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="imcluster-documentation">
-<h1>imcluster documentation<a class="headerlink" href="#imcluster-documentation" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">imcluster</span></code> clusters image collections using pretrained vision features and
-creates a cached dataset plus a standalone HTML report.</p>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#basic-run">Basic run</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#caching">Caching</a></li>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#clustering">Clustering</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-line reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#positional-arguments">Positional arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#main-options">Main options</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cli.html#cache-options">Cache options</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
-<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
-</ul>
+  <section id="development">
+<h1>Development<a class="headerlink" href="#development" title="Link to this heading"></a></h1>
+<p>Install and verify the project with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">poetry</span> <span class="n">install</span>
+<span class="n">poetry</span> <span class="n">run</span> <span class="n">pytest</span>
+<span class="n">poetry</span> <span class="n">run</span> <span class="n">ruff</span> <span class="n">check</span> <span class="n">imcluster</span> <span class="n">tests</span>
+<span class="n">poetry</span> <span class="n">run</span> <span class="n">mypy</span> <span class="n">imcluster</span>
+<span class="n">poetry</span> <span class="n">run</span> <span class="n">sphinx</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">W</span> <span class="o">-</span><span class="n">b</span> <span class="n">html</span> <span class="n">docs</span> <span class="n">docs</span><span class="o">/</span><span class="n">_build</span><span class="o">/</span><span class="n">html</span>
+<span class="n">poetry</span> <span class="n">build</span>
+</pre></div>
 </div>
+<p>See the repository’s <code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.rst</span></code> and <code class="docutils literal notranslate"><span class="pre">SECURITY.md</span></code> files for project
+policies.</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cli.html" class="btn btn-neutral float-left" title="Command-line reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
