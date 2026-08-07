@@ -45,7 +45,10 @@
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-access-to-dinov3">Getting access to DINOv3</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command-line reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -80,11 +83,34 @@
 <p>The default is DINOv3 ViT-B/16, selected by <code class="docutils literal notranslate"><span class="pre">--arch</span> <span class="pre">vit</span> <span class="pre">--size</span> <span class="pre">base</span></code>.
 Smaller models are faster and need less memory. An arbitrary compatible Hugging
 Face model can be supplied with <code class="docutils literal notranslate"><span class="pre">--model</span></code>, which overrides both preset flags.</p>
-<p>The DINOv3 repositories are gated. Accept the model terms and authenticate with
-<code class="docutils literal notranslate"><span class="pre">hf</span> <span class="pre">auth</span> <span class="pre">login</span></code> before the first run. Model weights are governed by the
-DINOv3 license rather than imcluster’s Apache License 2.0.</p>
+<section id="getting-access-to-dinov3">
+<h2>Getting access to DINOv3<a class="headerlink" href="#getting-access-to-dinov3" title="Link to this heading"></a></h2>
+<p>The DINOv3 repositories are gated. Before the first run:</p>
+<ol class="arabic">
+<li><p>Sign in to Hugging Face and open the <a class="reference external" href="https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m">DINOv3 ViT-B/16 model page</a>.</p></li>
+<li><p>Review and accept Meta’s DINOv3 license and agree to share the requested
+contact information. Approval is usually automatic, but access can take
+several minutes (often 5–15 minutes) to propagate.</p></li>
+<li><p>Authenticate locally and verify the active account:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span> <span class="n">auth</span> <span class="n">login</span>
+<span class="n">hf</span> <span class="n">auth</span> <span class="n">whoami</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>The login command uses a browser flow and stores a token locally. On a server
+or in another non-interactive environment, create a read token in <a class="reference external" href="https://huggingface.co/settings/tokens">Hugging
+Face token settings</a> and provide it
+through the environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">HF_TOKEN</span><span class="o">=</span><span class="n">hf_your_token_here</span>
+</pre></div>
+</div>
+<p>Do not commit the token or embed it in scripts. The token must belong to the
+same Hugging Face account that accepted the DINOv3 terms. Model weights are
+governed by the DINOv3 license rather than imcluster’s Apache License 2.0.</p>
 <p>Inference uses pooled, normalized embeddings. <code class="docutils literal notranslate"><span class="pre">--device</span> <span class="pre">auto</span></code> prefers CUDA,
 then Apple MPS, then CPU. Adjust <code class="docutils literal notranslate"><span class="pre">--batch-size</span></code> to fit available memory.</p>
+</section>
 </section>
 
 
