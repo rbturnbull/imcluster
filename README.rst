@@ -2,7 +2,7 @@
    :alt: imcluster
    :align: center
 
-|docs| |tests| |pypi|
+|pypi| |docs| |tests|
 
 .. |docs| image:: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml/badge.svg
    :alt: Documentation build status
@@ -10,7 +10,7 @@
 .. |tests| image:: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml/badge.svg
    :alt: Test suite status
    :target: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml
-.. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg?color=blue
    :alt: PyPI package version
    :target: https://pypi.org/project/imcluster/
 
@@ -168,6 +168,7 @@ Credits
 -------
 
 ``imcluster`` is maintained by `Robert Turnbull <https://robturnbull.com>`_ at
-the Melbourne Data Analytics Platform. Zaher Joukhadar was instrumental in the
-original idea, and James
+the `Melbourne Data Analytics Platform <https://www.unimelb.edu.au/mdap>`_.
+`Zaher Joukhadar <https://joukhadar.me/>`_ was instrumental in the original
+idea, and James
 Quang helped implement DINO feature extraction.
