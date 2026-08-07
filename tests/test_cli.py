@@ -1,18 +1,20 @@
 import numpy as np
+from click import unstyle
 from typer.testing import CliRunner
 
 from imcluster.main import app
 
 
 def test_cli_help_is_available():
-    result = CliRunner().invoke(app, ["--help"])
+    result = CliRunner().invoke(app, ["--help"], color=False)
+    help_text = unstyle(result.stdout)
 
     assert result.exit_code == 0
-    assert "inputs" in result.stdout.lower()
-    assert "output_df" in result.stdout.lower()
-    assert "--arch" in result.stdout
-    assert "--size" in result.stdout
-    assert "--model" in result.stdout
+    assert "inputs" in help_text.lower()
+    assert "output_df" in help_text.lower()
+    assert "--arch" in help_text
+    assert "--size" in help_text
+    assert "--model" in help_text
 
 
 def test_cli_uses_default_vit_base_model(tmp_path, image_factory, monkeypatch):
