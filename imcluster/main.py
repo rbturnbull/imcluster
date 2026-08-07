@@ -1,14 +1,13 @@
 import typer
-from typing import List
+from typing import List, Optional
 from pathlib import Path
 
 from .io import ImclusterIO
-from .features import build_features
+from .features import DEFAULT_MODEL, build_features
 from .pca import fit_pca
 from .cluster import cluster
 from .plotting import plot
 from .html import write_html
-from .cluster_io import save_clusters
 
 from rich.console import Console
 
@@ -21,12 +20,14 @@ app = typer.Typer()
 def main(
     inputs:List[Path],
     output_df:Path,
-    output_html:Path = None,
-    model:str = typer.Option("vgg19", help="The name of the torchvision model to use (see https://pytorch.org/vision/stable/models.html#)."),
+    output_html:Optional[Path] = None,
+    model:str = typer.Option(
+        DEFAULT_MODEL,
+        help="Hugging Face image-feature-extraction model name.",
+    ),
     max_images:int = None,
     algorithm:str = "SPECTRAL",
     n_clusters:int = 20,
-    batch_size:int = 1,
     thumbnail_width:int = 256,
     thumbnail_height:int = 256,
     force:bool = False,
@@ -48,8 +49,15 @@ def main(
         n_clusters=n_clusters,
         force=force or force_features or force_cluster,
     )
-    # save_clusters(
-    # imcluster_io=imcluster_io, output_dir=output_path, algorithm=algorithm
-    # )
-    plot(imcluster_io, output_html, thumbnail_height=thumbnail_height, thumbnail_width=thumbnail_width, force_thumbnails=force_thumbnails)
-    write_html(imcluster_io)
+    plot(
+        imcluster_io,
+        thumbnail_height=thumbnail_height,
+        thumbnail_width=thumbnail_width,
+        force=force,
+        force_thumbnails=force_thumbnails,
+    )
+    write_html(
+        imcluster_io,
+        output_html=output_html,
+        cluster_column=f"{algorithm.lower()}_cluster",
+    )

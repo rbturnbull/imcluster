@@ -30,3 +30,4 @@ def test_build_features_normalizes_and_caches_vectors(
     np.testing.assert_allclose(cached, generated)
     assert len(calls) == 1
     assert calls[0]["task"] == "image-feature-extraction"
+    assert calls[0]["model"] == "test-model"

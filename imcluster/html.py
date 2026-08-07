@@ -3,7 +3,11 @@ from collections import defaultdict
 from .io import ImclusterIO
 
 
-def write_html(imcluster_io: ImclusterIO, output_html=None, force: bool = False):
+def write_html(
+    imcluster_io: ImclusterIO,
+    output_html=None,
+    cluster_column="spectral_cluster",
+):
 
     env = Environment(loader=PackageLoader(__package__), autoescape=select_autoescape())
 
@@ -11,11 +15,14 @@ def write_html(imcluster_io: ImclusterIO, output_html=None, force: bool = False)
     # template = env.get_template("vtab.html")
 
     if not output_html:
-        output_html = "output-clusters.html"
+        output_html = imcluster_io.output.with_suffix(".html")
+
+    if cluster_column not in imcluster_io.df:
+        raise ValueError(f"Missing clustering results column: {cluster_column}")
 
     data = defaultdict(list)
-    df = imcluster_io.df.sort_values("spectral_cluster")
-    clusters = df["spectral_cluster"]
+    df = imcluster_io.df.sort_values(cluster_column)
+    clusters = df[cluster_column]
     thumbnails = df["thumbnail"]
     filenames = df["filenames"]
     for filename, cluster, thumbnail in zip(filenames, clusters, thumbnails):
