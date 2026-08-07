@@ -2,9 +2,20 @@
 Models
 ======
 
-The default is DINOv3 ViT-B/16, selected by ``--arch vit --size base``.
-Smaller models are faster and need less memory. An arbitrary compatible Hugging
-Face model can be supplied with ``--model``, which overrides both preset flags.
+The default is ``--dino-version auto --size base``. Automatic mode uses the
+selected DINOv3 model when it is already cached or can be accessed with the
+active Hugging Face account. Otherwise it reports the fallback and uses the
+corresponding DINOv2 model.
+
+Explicit DINOv2 selection uses ``--dino-version 2``. DINOv2 supports ``small``,
+``base``, ``large``, and ``max``; ``max`` selects DINOv2 Giant. The ``--arch``
+option is ignored for DINOv2. Automatic ``tiny`` and ``huge`` selections fall
+back to DINOv2 Small and Giant respectively.
+
+DINOv3 presets are selected with ``--dino-version 3`` and use both ``--arch``
+and ``--size``. Smaller models are faster and need less memory. An arbitrary
+compatible Hugging Face model can be supplied with ``--model``, which overrides
+the version, architecture, and size flags.
 
 Getting access to DINOv3
 ------------------------

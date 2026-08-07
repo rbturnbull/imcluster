@@ -10,17 +10,25 @@ Positional arguments
 ``INPUTS...``
    Image files, directories, or text manifests to process.
 
-``OUTPUT_DF``
-   Destination Parquet file for cached results.
-
 Main options
 ============
 
-``--output-html PATH``
-   Destination path for the standalone HTML cluster gallery.
+``--cache PATH``
+   Preserve processing results in a reusable Parquet cache.
+
+``--gallery PATH``
+   Preserve the standalone HTML cluster gallery at this path.
+
+``--no-open``
+   Do not launch the generated gallery in the default browser.
+
+``--dino-version [auto|2|3]``
+   Select the DINO generation. Automatic mode prefers an accessible or cached
+   DINOv3 model and otherwise falls back to DINOv2.
 
 ``--arch [vit|convnext]`` and ``--size [tiny|small|base|large|huge|max]``
-   Select a DINOv3 preset. The default is ``vit`` and ``base``.
+   Select a model preset. DINOv2 ignores ``--arch`` and supports ``small``,
+   ``base``, ``large``, and ``max`` (Giant). DINOv3 uses both options.
 
 ``--model TEXT``
    Use an arbitrary compatible Hugging Face model instead of the preset.

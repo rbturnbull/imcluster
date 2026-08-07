@@ -80,9 +80,18 @@
              
   <section id="models">
 <h1>Models<a class="headerlink" href="#models" title="Link to this heading"></a></h1>
-<p>The default is DINOv3 ViT-B/16, selected by <code class="docutils literal notranslate"><span class="pre">--arch</span> <span class="pre">vit</span> <span class="pre">--size</span> <span class="pre">base</span></code>.
-Smaller models are faster and need less memory. An arbitrary compatible Hugging
-Face model can be supplied with <code class="docutils literal notranslate"><span class="pre">--model</span></code>, which overrides both preset flags.</p>
+<p>The default is <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">auto</span> <span class="pre">--size</span> <span class="pre">base</span></code>. Automatic mode uses the
+selected DINOv3 model when it is already cached or can be accessed with the
+active Hugging Face account. Otherwise it reports the fallback and uses the
+corresponding DINOv2 model.</p>
+<p>Explicit DINOv2 selection uses <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">2</span></code>. DINOv2 supports <code class="docutils literal notranslate"><span class="pre">small</span></code>,
+<code class="docutils literal notranslate"><span class="pre">base</span></code>, <code class="docutils literal notranslate"><span class="pre">large</span></code>, and <code class="docutils literal notranslate"><span class="pre">max</span></code>; <code class="docutils literal notranslate"><span class="pre">max</span></code> selects DINOv2 Giant. The <code class="docutils literal notranslate"><span class="pre">--arch</span></code>
+option is ignored for DINOv2. Automatic <code class="docutils literal notranslate"><span class="pre">tiny</span></code> and <code class="docutils literal notranslate"><span class="pre">huge</span></code> selections fall
+back to DINOv2 Small and Giant respectively.</p>
+<p>DINOv3 presets are selected with <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">3</span></code> and use both <code class="docutils literal notranslate"><span class="pre">--arch</span></code>
+and <code class="docutils literal notranslate"><span class="pre">--size</span></code>. Smaller models are faster and need less memory. An arbitrary
+compatible Hugging Face model can be supplied with <code class="docutils literal notranslate"><span class="pre">--model</span></code>, which overrides
+the version, architecture, and size flags.</p>
 <section id="getting-access-to-dinov3">
 <h2>Getting access to DINOv3<a class="headerlink" href="#getting-access-to-dinov3" title="Link to this heading"></a></h2>
 <p>The DINOv3 repositories are gated. Before the first run:</p>

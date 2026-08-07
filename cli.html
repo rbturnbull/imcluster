@@ -88,16 +88,22 @@
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">INPUTS...</span></code></dt><dd><p>Image files, directories, or text manifests to process.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">OUTPUT_DF</span></code></dt><dd><p>Destination Parquet file for cached results.</p>
-</dd>
 </dl>
 </section>
 <section id="main-options">
 <h2>Main options<a class="headerlink" href="#main-options" title="Link to this heading"></a></h2>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">--output-html</span> <span class="pre">PATH</span></code></dt><dd><p>Destination path for the standalone HTML cluster gallery.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">--cache</span> <span class="pre">PATH</span></code></dt><dd><p>Preserve processing results in a reusable Parquet cache.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">--arch</span> <span class="pre">[vit|convnext]</span></code> and <code class="docutils literal notranslate"><span class="pre">--size</span> <span class="pre">[tiny|small|base|large|huge|max]</span></code></dt><dd><p>Select a DINOv3 preset. The default is <code class="docutils literal notranslate"><span class="pre">vit</span></code> and <code class="docutils literal notranslate"><span class="pre">base</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">--gallery</span> <span class="pre">PATH</span></code></dt><dd><p>Preserve the standalone HTML cluster gallery at this path.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--no-open</span></code></dt><dd><p>Do not launch the generated gallery in the default browser.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">[auto|2|3]</span></code></dt><dd><p>Select the DINO generation. Automatic mode prefers an accessible or cached
+DINOv3 model and otherwise falls back to DINOv2.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--arch</span> <span class="pre">[vit|convnext]</span></code> and <code class="docutils literal notranslate"><span class="pre">--size</span> <span class="pre">[tiny|small|base|large|huge|max]</span></code></dt><dd><p>Select a model preset. DINOv2 ignores <code class="docutils literal notranslate"><span class="pre">--arch</span></code> and supports <code class="docutils literal notranslate"><span class="pre">small</span></code>,
+<code class="docutils literal notranslate"><span class="pre">base</span></code>, <code class="docutils literal notranslate"><span class="pre">large</span></code>, and <code class="docutils literal notranslate"><span class="pre">max</span></code> (Giant). DINOv3 uses both options.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">--model</span> <span class="pre">TEXT</span></code></dt><dd><p>Use an arbitrary compatible Hugging Face model instead of the preset.</p>
 </dd>
