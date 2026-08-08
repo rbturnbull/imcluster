@@ -2,17 +2,24 @@
    :alt: imcluster
    :align: center
 
-|pypi| |docs| |tests|
+|pypi| |docs| |coverage badge| |tests|
 
 .. |docs| image:: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml/badge.svg
    :alt: Documentation build status
    :target: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml
+
 .. |tests| image:: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml/badge.svg
    :alt: Test suite status
    :target: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml
+
 .. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg?color=blue
    :alt: PyPI package version
    :target: https://pypi.org/project/imcluster/
+
+.. |coverage badge| image:: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rbturnbull/74d271aef18559583efb89100748fe11/raw/coverage-badge.json
+    :alt: Coverage badge
+    :target: https://rbturnbull.github.io/imcluster/coverage/
+
 
 ``imcluster`` clusters images using features from pretrained
 vision models. It produces a reusable cache and a self-contained HTML

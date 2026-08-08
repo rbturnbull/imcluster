@@ -11,5 +11,6 @@ dist/
 docs/_build/
 images/
 outputs/
+site/
 paper.pdf
 dino_unet.py

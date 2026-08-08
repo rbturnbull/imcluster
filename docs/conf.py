@@ -8,8 +8,6 @@ author = "Robert Turnbull"
 release = package_version("imcluster")
 
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
     "sphinxcontrib.bibtex",
 ]
 
