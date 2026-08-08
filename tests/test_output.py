@@ -152,6 +152,10 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     )
     assert 'id="search-previous"' in rendered
     assert 'id="search-next"' in rendered
+    assert 'class="bi bi-chevron-left"' in rendered
+    assert 'class="bi bi-chevron-right"' in rendered
+    assert 'aria-label="Previous match"' in rendered
+    assert 'aria-label="Next match"' in rendered
     assert 'id="search-position"' in rendered
     assert 'image.classList.toggle("search-miss"' in rendered
     assert "scrollIntoView" in rendered

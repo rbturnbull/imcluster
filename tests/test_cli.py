@@ -342,3 +342,42 @@ def test_cli_uses_temporary_outputs_when_paths_are_omitted(
     assert "--cache PATH" in output_text
     assert "Gallery is temporary" in output_text
     assert "--gallery PATH" in output_text
+
+
+def test_cli_uses_existing_cache_without_image_inputs(
+    tmp_path, image_factory, monkeypatch
+):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    cache = tmp_path / "results.parquet"
+    gallery = tmp_path / "gallery.html"
+    ImclusterIO(images, cache).save()
+    observed = []
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda store, **kwargs: [[1.0], [2.0]]
+    )
+    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "imcluster.main.write_html",
+        lambda store, **kwargs: observed.extend(store.images),
+    )
+
+    result = invoke_cli(
+        app,
+        ["--cache", str(cache), "--gallery", str(gallery), "--no-open"],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert observed == [image.resolve() for image in images]
+
+
+def test_cli_requires_inputs_when_cache_does_not_exist(tmp_path):
+    result = invoke_cli(
+        app,
+        ["--cache", str(tmp_path / "missing.parquet"), "--no-open"],
+    )
+
+    assert result.exit_code == 2
+    assert "Provide image inputs or an existing --cache file" in plain_output(result)

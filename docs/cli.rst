@@ -8,7 +8,8 @@ Positional arguments
 ====================
 
 ``INPUTS...``
-   Image files, directories, or text manifests to process.
+   Optional image files, directories, or text manifests to process. Inputs may
+   be omitted when ``--cache`` names an existing imcluster cache.
 
 Main options
 ============

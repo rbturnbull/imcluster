@@ -49,9 +49,30 @@ class ImclusterIO:
     ) -> None:
         """Initialize an image collection and load any cached results."""
         self.output: Path = Path(output)
+        self.images: list[Path]
+        self.filenames: list[str]
+        self.paths: list[str]
+        self.df: pd.DataFrame
+        supplied_inputs = list(inputs)
+
+        if not supplied_inputs and self.output.exists() and not reset_cache:
+            df = pd.read_parquet(self.output)
+            if "path" not in df:
+                raise ValueError(
+                    f"Cached results in '{self.output}' do not contain image paths."
+                )
+            self.paths = df["path"].tolist()
+            self.images = [Path(path) for path in self.paths]
+            self.filenames = (
+                df["filenames"].tolist()
+                if "filenames" in df
+                else [image.name for image in self.images]
+            )
+            self.df = df
+            return
 
         discovered: list[Path] = []
-        for path in inputs:
+        for path in supplied_inputs:
             path = Path(path).expanduser()
 
             if path.is_dir():
@@ -82,8 +103,8 @@ class ImclusterIO:
         if max_images and len(self.images) > max_images:
             self.images = self.images[:max_images]
 
-        self.filenames: list[str] = [image.name for image in self.images]
-        self.paths: list[str] = [str(image) for image in self.images]
+        self.filenames = [image.name for image in self.images]
+        self.paths = [str(image) for image in self.images]
 
         if self.output.exists() and not reset_cache:
             df = pd.read_parquet(self.output)
@@ -95,7 +116,7 @@ class ImclusterIO:
         else:
             df = pd.DataFrame({"path": self.paths, "filenames": self.filenames})
 
-        self.df: pd.DataFrame = df
+        self.df = df
 
     def has_column(self, column_name: str) -> bool:
         """Return whether the cached table contains a named column."""

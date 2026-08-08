@@ -34,9 +34,14 @@ def open_gallery(path: Path) -> None:
 @app.command()
 def main(
     inputs: Annotated[
-        list[Path],
-        typer.Argument(help="Image files, directories, or text manifests to process."),
-    ],
+        list[Path] | None,
+        typer.Argument(
+            help=(
+                "Image files, directories, or text manifests. May be omitted when "
+                "loading an existing --cache file."
+            )
+        ),
+    ] = None,
     cache: Annotated[
         Path | None,
         typer.Option(help="Preserve processing results in this Parquet file."),
@@ -148,7 +153,7 @@ def main(
 
     try:
         imcluster_io = ImclusterIO(
-            inputs,
+            inputs or [],
             output_df,
             max_images=max_images,
             recursive=recursive,
@@ -158,7 +163,9 @@ def main(
         raise typer.BadParameter(str(error), param_hint="--cache") from error
     if not imcluster_io.images:
         raise typer.BadParameter(
-            "No valid input images were found", param_hint="inputs"
+            "No valid input images were found. Provide image inputs or an existing "
+            "--cache file.",
+            param_hint="inputs",
         )
     if len(imcluster_io.images) < 2:
         raise typer.BadParameter(

@@ -1,6 +1,6 @@
 [project]
 name = "imcluster"
-version = "0.3.0"
+version = "0.3.1"
 description = "Cluster images using features from pretrained vision models."
 readme = "README.rst"
 requires-python = ">=3.10,<3.14"
@@ -8,7 +8,7 @@ license = "Apache-2.0"
 authors = [
     { name = "Robert Turnbull", email = "robert.turnbull@unimelb.edu.au" },
 ]
-keywords = ["clustering", "computer-vision", "dinov3", "images", "machine-learning"]
+keywords = ["clustering", "computer-vision", "dinov3", "dinov2", "images", "machine-learning"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",

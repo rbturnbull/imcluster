@@ -112,6 +112,36 @@ def test_columns_are_saved_to_and_loaded_from_parquet(tmp_path, image_factory):
     assert loaded.get_all_columns() == ["path", "filenames", "score"]
 
 
+def test_existing_cache_restores_images_without_inputs(tmp_path, image_factory):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    output = tmp_path / "results.parquet"
+    expected = ImclusterIO(images, output)
+    expected.save()
+
+    loaded = ImclusterIO([], output)
+
+    assert loaded.images == expected.images
+    assert loaded.paths == expected.paths
+    assert loaded.filenames == expected.filenames
+
+
+def test_cache_without_paths_rejects_empty_inputs(tmp_path):
+    output = tmp_path / "results.parquet"
+    pd.DataFrame({"value": [1]}).to_parquet(output)
+
+    with pytest.raises(ValueError, match="do not contain image paths"):
+        ImclusterIO([], output)
+
+
+def test_cache_without_filenames_derives_them_from_paths(tmp_path):
+    output = tmp_path / "results.parquet"
+    pd.DataFrame({"path": [str(tmp_path / "photo.jpg")]}).to_parquet(output)
+
+    loaded = ImclusterIO([], output)
+
+    assert loaded.filenames == ["photo.jpg"]
+
+
 def test_cache_must_match_current_images(tmp_path, image_factory):
     first = image_factory("first.jpg")
     second = image_factory("second.jpg")

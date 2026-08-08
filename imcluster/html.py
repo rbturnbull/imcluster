@@ -123,6 +123,8 @@ def write_html(
     )
     copy_icon = files("imcluster").joinpath("assets/copy.svg").read_text()
     search_icon = files("imcluster").joinpath("assets/search.svg").read_text()
+    previous_icon = files("imcluster").joinpath("assets/chevron-left.svg").read_text()
+    next_icon = files("imcluster").joinpath("assets/chevron-right.svg").read_text()
     result = template.render(
         data=data,
         metadata=report_metadata,
@@ -133,6 +135,8 @@ def write_html(
         bootstrap_js=bootstrap_js,
         copy_icon=copy_icon,
         search_icon=search_icon,
+        previous_icon=previous_icon,
+        next_icon=next_icon,
     )
 
     with open(output_html, "w", encoding="utf-8") as f:

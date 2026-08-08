@@ -50,8 +50,8 @@
         <div class="gallery-search input-group me-3 me-lg-4">
           <span class="input-group-text rounded-start-3">{{ search_icon|safe }}</span>
           <input id="image-search" class="form-control" type="search" placeholder="Search images..." aria-label="Search images">
-          <button id="search-previous" class="btn btn-outline-secondary" type="button" disabled>Previous</button>
-          <button id="search-next" class="btn btn-outline-secondary" type="button" disabled>Next</button>
+          <button id="search-previous" class="btn btn-outline-secondary" type="button" data-bs-toggle="tooltip" data-bs-title="Previous match" aria-label="Previous match" disabled>{{ previous_icon|safe }}<span class="visually-hidden">Previous match</span></button>
+          <button id="search-next" class="btn btn-outline-secondary" type="button" data-bs-toggle="tooltip" data-bs-title="Next match" aria-label="Next match" disabled>{{ next_icon|safe }}<span class="visually-hidden">Next match</span></button>
           <span id="search-position" class="input-group-text border-start" aria-live="polite">0 of 0</span>
         </div>
       </div>

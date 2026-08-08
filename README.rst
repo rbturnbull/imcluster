@@ -122,6 +122,12 @@ a clear error. Pass ``--force`` to intentionally replace the cache. More
 targeted controls are available as ``--force-features``, ``--force-cluster``,
 and ``--force-thumbnails``.
 
+After creating a cache, rerun it without repeating the image inputs:
+
+.. code-block:: bash
+
+    imcluster --cache results.parquet
+
 Models
 ======
 

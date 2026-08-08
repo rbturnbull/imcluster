@@ -24,6 +24,13 @@ reused only with the same ordered set of resolved image paths. Use ``--force``
 to replace it, or a stage-specific force option to recompute part of the
 pipeline.
 
+Once a cache exists, its stored image paths can be used without repeating the
+original inputs:
+
+.. code-block:: bash
+
+   imcluster --cache results.parquet
+
 Clustering
 ==========
 
