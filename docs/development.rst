@@ -2,7 +2,9 @@
 Development
 ===========
 
-Install and verify the project with::
+Install and verify the project with:
+
+.. code-block:: bash
 
    poetry install
    poetry run coverage run -m pytest

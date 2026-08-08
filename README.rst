@@ -34,9 +34,11 @@ DBSCAN available when the number of groups is not known.
 Installation
 ============
 
-``imcluster`` requires Python 3.10--3.13::
+``imcluster`` requires Python 3.10--3.13:
 
-    python -m pip install imcluster
+.. code-block:: bash
+
+    pip install imcluster
 
 DINOv2 presets are public and require no authentication. DINOv3 model
 repositories are gated. Before using ``--dino-version 3``:
@@ -46,18 +48,24 @@ repositories are gated. Before using ``--dino-version 3``:
 #. Review and accept Meta's DINOv3 license and agree to share the requested
    contact information. Approval is usually automatic, but access can take
    several minutes (often 5--15 minutes) to propagate.
-#. Authenticate the machine that will run ``imcluster``::
+#. Authenticate the machine that will run ``imcluster``:
+
+   .. code-block:: bash
 
        hf auth login
 
    This opens Hugging Face's browser login flow and stores the resulting token
-   locally. Confirm the active account with::
+   locally. Confirm the active account with:
+
+   .. code-block:: bash
 
        hf auth whoami
 
 For a server or non-interactive environment, create a read token in `Hugging
 Face token settings <https://huggingface.co/settings/tokens>`_ and expose it to
-the process instead::
+the process instead:
+
+.. code-block:: bash
 
     export HF_TOKEN=hf_your_token_here
 
@@ -72,11 +80,15 @@ license; the ``imcluster`` source code uses the Apache License 2.0.
 Quick start
 ===========
 
-Cluster the images directly inside a directory and open the gallery::
+Cluster the images directly inside a directory and open the gallery:
+
+.. code-block:: bash
 
     imcluster photos/
 
-Include nested directories, request 12 groups, and preserve the outputs::
+Include nested directories, request 12 groups, and preserve the outputs:
+
+.. code-block:: bash
 
     imcluster photos/ --recursive --n-clusters 12 \
         --cache results.parquet --gallery clusters.html
@@ -140,7 +152,9 @@ Architecture     Size    Hugging Face model
 ``convnext``     large   ``facebook/dinov3-convnext-large-pretrain-lvd1689m``
 ===============  ======  ====================================================
 
-An arbitrary compatible Hugging Face model overrides the preset::
+An arbitrary compatible Hugging Face model overrides the preset:
+
+.. code-block:: bash
 
     imcluster photos/ --model organization/model-id
 
@@ -159,16 +173,22 @@ Clustering
 ==========
 
 Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
-count::
+count:
+
+.. code-block:: bash
 
     imcluster photos/ --clustering spectral --n-clusters 10
 
-DBSCAN discovers groups and marks outliers as the noise cluster::
+DBSCAN discovers groups and marks outliers as the noise cluster:
+
+.. code-block:: bash
 
     imcluster photos/ --clustering dbscan \
         --dbscan-eps 0.35 --min-samples 3
 
-HDBSCAN also discovers groups and noise while adapting to varying densities::
+HDBSCAN also discovers groups and noise while adapting to varying densities:
+
+.. code-block:: bash
 
     imcluster photos/ --clustering hdbscan --min-samples 5
 
@@ -187,7 +207,9 @@ their authors.
 Development
 ===========
 
-Clone the repository, install Poetry, and run::
+Clone the repository, install Poetry, and run:
+
+.. code-block:: bash
 
     poetry install
     poetry run coverage run -m pytest

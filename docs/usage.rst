@@ -5,7 +5,7 @@ Usage
 Basic run
 =========
 
-::
+.. code-block:: bash
 
    imcluster photos/
 

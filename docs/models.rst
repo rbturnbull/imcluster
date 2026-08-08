@@ -27,7 +27,9 @@ The DINOv3 repositories are gated. Before the first run:
 #. Review and accept Meta's DINOv3 license and agree to share the requested
    contact information. Approval is usually automatic, but access can take
    several minutes (often 5--15 minutes) to propagate.
-#. Authenticate locally and verify the active account::
+#. Authenticate locally and verify the active account:
+
+   .. code-block:: bash
 
       hf auth login
       hf auth whoami
@@ -35,7 +37,9 @@ The DINOv3 repositories are gated. Before the first run:
 The login command uses a browser flow and stores a token locally. On a server
 or in another non-interactive environment, create a read token in `Hugging
 Face token settings <https://huggingface.co/settings/tokens>`_ and provide it
-through the environment::
+through the environment:
+
+.. code-block:: bash
 
    export HF_TOKEN=hf_your_token_here
 
