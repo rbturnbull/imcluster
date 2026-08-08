@@ -53,6 +53,22 @@ def test_generate_thumbnails_generates_and_persists_thumbnails(tmp_path, image_f
     assert len(store.get_column("thumbnail")) == 2
 
 
+def test_generate_thumbnails_reports_cached_results(
+    tmp_path, image_factory, monkeypatch
+):
+    store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
+    store.df["thumbnail"] = ["cached-thumbnail"]
+    messages = []
+    monkeypatch.setattr("imcluster.thumbnails.console.print", messages.append)
+
+    generate_thumbnails(store)
+
+    assert messages == [
+        "[green]Using cached thumbnails:[/green] "
+        f"loaded 1 thumbnails from '{store.output}'."
+    ]
+
+
 def test_representative_indices_select_cosine_medoids():
     labels = np.array([0, 0, 0, 1])
     features = np.array([[1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [-1.0, 0.0]])

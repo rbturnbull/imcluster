@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from rich.console import Console
+
+console = Console()
 
 SUPPORTED_IMAGE_SUFFIXES = {
     ".png",
@@ -68,7 +71,10 @@ class ImclusterIO:
             elif valid_image(path):
                 discovered.append(path)
             else:
-                print(f"File '{path}' does not have a valid extension.")
+                console.print(
+                    "[yellow]Skipping input:[/yellow] "
+                    f"'{path}' is not an existing image with a supported extension."
+                )
 
         # Resolve paths and remove duplicates without changing input order.
         self.images = list(dict.fromkeys(image.resolve() for image in discovered))

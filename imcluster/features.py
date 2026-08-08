@@ -87,6 +87,9 @@ DINOV2_FALLBACK_MODELS = {
 }
 
 DEFAULT_MODEL = DINOV2_MODELS[ModelSize.BASE]
+DINOV3_ACCESS_DOCS = (
+    "https://rbturnbull.github.io/imcluster/models.html#getting-access-to-dinov3"
+)
 
 
 def dinov3_available(model_name: str) -> bool:
@@ -166,9 +169,20 @@ def resolve_model(
             f"Size '{size.value}' is not available for {selection}"
         ) from error
 
-    if dino_version is DinoVersion.AUTO and not dinov3_available(selected_model):
+    if dino_version is DinoVersion.AUTO:
+        with console.status("[cyan]Checking DINOv3 model access...[/cyan]"):
+            available = dinov3_available(selected_model)
+    else:
+        available = True
+    if not available:
         fallback = DINOV2_FALLBACK_MODELS[size]
-        console.print(f"DINOv3 is unavailable; using {fallback}")
+        console.print(
+            "[bold yellow]Warning:[/bold yellow] DINOv3 is not available to "
+            "the active Hugging Face account or local cache, so imcluster is "
+            f"falling back to {fallback}. DINOv3 requires access approval and "
+            "authentication. See the "
+            f"[link={DINOV3_ACCESS_DOCS}]imcluster DINOv3 access instructions[/link]."
+        )
         return fallback
     return selected_model
 
@@ -200,12 +214,18 @@ def build_features(
         raise ValueError("batch_size must be at least 1")
 
     if not imcluster_io.has_column(model_name) or force:
-        console.print("Setting up dataset")
-        feature_extractor = pipeline(
-            model=model_name,
-            task="image-feature-extraction",
-            device=resolve_device(device),
+        resolved_device = resolve_device(device)
+        console.print(
+            "[cyan]Loading feature model:[/cyan] "
+            f"{model_name} on {resolved_device}; processing "
+            f"{len(imcluster_io.images)} images in batches of {batch_size}."
         )
+        with console.status(f"[cyan]Loading model '{model_name}'...[/cyan]"):
+            feature_extractor = pipeline(
+                model=model_name,
+                task="image-feature-extraction",
+                device=resolved_device,
+            )
 
         results: list[NDArray[Any]] = []
         image_batches = [
@@ -247,8 +267,15 @@ def build_features(
         imcluster_io.save_column(
             model_name, [feature_vectors[x] for x in range(feature_vectors.shape[0])]
         )
+        console.print(
+            "[green]Cached feature vectors:[/green] "
+            f"wrote {len(feature_vectors)} embeddings to '{imcluster_io.output}'."
+        )
     else:
-        console.print("Using precomputed feature vectors")
+        console.print(
+            "[green]Using cached feature vectors:[/green] "
+            f"loaded model '{model_name}' embeddings from '{imcluster_io.output}'."
+        )
 
         feature_vectors = np.array(imcluster_io.get_column(model_name).to_list())
 

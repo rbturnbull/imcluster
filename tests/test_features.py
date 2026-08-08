@@ -5,6 +5,7 @@ from imcluster.features import (
     CONVNEXT_MODELS,
     DINOV2_FALLBACK_MODELS,
     DINOV2_MODELS,
+    DINOV3_ACCESS_DOCS,
     VIT_MODELS,
     Device,
     DinoVersion,
@@ -103,6 +104,25 @@ def test_resolve_model_auto_falls_back_to_dinov2(size, expected, monkeypatch):
     assert (
         resolve_model(None, DinoVersion.AUTO, ModelArchitecture.VIT, size) == expected
     )
+
+
+def test_auto_fallback_warns_about_dinov3_access(monkeypatch):
+    messages = []
+    monkeypatch.setattr("imcluster.features.dinov3_available", lambda model: False)
+    monkeypatch.setattr("imcluster.features.console.print", messages.append)
+
+    result = resolve_model(
+        None,
+        DinoVersion.AUTO,
+        ModelArchitecture.VIT,
+        ModelSize.BASE,
+    )
+
+    assert result == "facebook/dinov2-base"
+    assert len(messages) == 1
+    assert "[bold yellow]Warning:[/bold yellow]" in messages[0]
+    assert "access approval and authentication" in messages[0]
+    assert DINOV3_ACCESS_DOCS in messages[0]
 
 
 def test_resolve_model_auto_falls_back_when_dinov3_preset_is_missing():

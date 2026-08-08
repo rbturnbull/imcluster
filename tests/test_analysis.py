@@ -74,7 +74,10 @@ def test_spectral_clustering_uses_precomputed_labels(
     cluster(store, np.empty((2, 0)), algorithm="spectral")
 
     assert store.get_column("spectral_cluster").tolist() == [4, 5]
-    assert messages == ["Using precomputed spectral clusters"]
+    assert messages == [
+        "[green]Using cached spectral clusters:[/green] "
+        f"loaded 2 assignments from '{store.output}'."
+    ]
 
 
 def test_dbscan_clustering_uses_precomputed_labels(
@@ -91,7 +94,10 @@ def test_dbscan_clustering_uses_precomputed_labels(
     cluster(store, np.empty((2, 0)), algorithm="dbscan")
 
     assert store.get_column("dbscan_cluster").tolist() == [-1, 2]
-    assert messages == ["Using precomputed dbscan clusters"]
+    assert messages == [
+        "[green]Using cached dbscan clusters:[/green] "
+        f"loaded 2 assignments from '{store.output}'."
+    ]
 
 
 @pytest.mark.parametrize(
@@ -112,7 +118,10 @@ def test_additional_clustering_methods_use_precomputed_labels(
     cluster(store, np.empty((2, 0)), algorithm=algorithm)
 
     assert store.get_column(column).tolist() == [0, 1]
-    assert messages == [f"Using precomputed {algorithm} clusters"]
+    assert messages == [
+        f"[green]Using cached {algorithm} clusters:[/green] "
+        f"loaded 2 assignments from '{store.output}'."
+    ]
 
 
 def test_unknown_clustering_algorithm_is_rejected(tmp_path, image_factory):

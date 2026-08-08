@@ -273,6 +273,11 @@ def test_cli_runs_local_pipeline_and_writes_requested_files(
     assert cache.is_file()
     assert gallery.is_file()
     assert "Cluster" in gallery.read_text()
+    output_text = plain_output(result)
+    assert "Wrote processing cache:" in output_text
+    assert "results.parquet" in output_text
+    assert "Wrote HTML gallery:" in output_text
+    assert "report.html" in output_text
 
 
 def test_cli_opens_saved_gallery(tmp_path, image_factory, monkeypatch):
@@ -332,3 +337,8 @@ def test_cli_uses_temporary_outputs_when_paths_are_omitted(
     assert result.exit_code == 0, result.exception
     assert (temporary_directory / "results.parquet").is_file()
     assert written_gallery == [temporary_directory / "gallery.html"]
+    output_text = plain_output(result)
+    assert "Cache is temporary" in output_text
+    assert "--cache PATH" in output_text
+    assert "Gallery is temporary" in output_text
+    assert "--gallery PATH" in output_text

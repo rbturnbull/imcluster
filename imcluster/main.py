@@ -164,6 +164,10 @@ def main(
         raise typer.BadParameter(
             "At least two images are required", param_hint="inputs"
         )
+    console.print(
+        f"[bold]Processing {len(imcluster_io.images)} images[/bold] with model "
+        f"'{model_name}' and {clustering.value} clustering."
+    )
 
     feature_vectors = build_features(
         imcluster_io,
@@ -191,16 +195,34 @@ def main(
         force=force,
         force_thumbnails=force_thumbnails,
     )
-    write_html(
-        imcluster_io,
-        output_html=output_html,
-        cluster_column=f"{clustering.value}_cluster",
-        metadata={
-            "Model": model_name,
-            "Clustering": clustering.value,
-            "Images": str(len(imcluster_io.images)),
-        },
-        feature_vectors=feature_vectors,
-    )
+    with console.status("[cyan]Rendering HTML gallery...[/cyan]"):
+        write_html(
+            imcluster_io,
+            output_html=output_html,
+            cluster_column=f"{clustering.value}_cluster",
+            metadata={
+                "Model": model_name,
+                "Clustering": clustering.value,
+                "Images": str(len(imcluster_io.images)),
+            },
+            feature_vectors=feature_vectors,
+        )
+    console.print(f"[green]Wrote processing cache:[/green] {output_df.resolve()}")
+    console.print(f"[green]Wrote HTML gallery:[/green] {output_html.resolve()}")
+    if cache is None:
+        console.print(
+            "[yellow]Cache is temporary:[/yellow] no persistent cache file was "
+            "requested. Use [bold]--cache PATH[/bold] to preserve it."
+        )
+    if gallery is None:
+        console.print(
+            "[yellow]Gallery is temporary:[/yellow] no persistent gallery file "
+            "was requested. Use [bold]--gallery PATH[/bold] to preserve it."
+        )
     if not no_open:
+        console.print(f"[cyan]Opening gallery:[/cyan] {output_html.resolve()}")
         open_gallery(output_html)
+    else:
+        console.print(
+            "[dim]Gallery was not opened because --no-open was specified.[/dim]"
+        )

@@ -15,4 +15,5 @@ Install and verify the project with:
    poetry build
 
 See the repository's ``CONTRIBUTING.rst`` and ``SECURITY.md`` files for project
-policies.
+policies. Issues may be reported at
+https://github.com/rbturnbull/imcluster/issues.

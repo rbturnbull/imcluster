@@ -42,7 +42,7 @@ not known.
 Installation
 ============
 
-``imcluster`` requires Python 3.10--3.13:
+``imcluster`` requires Python 3.10–3.13:
 
 .. code-block:: bash
 
@@ -212,26 +212,8 @@ a high-memory GPU. Clustering quality depends on the visual domain and chosen
 parameters. The models' training data also carries the biases documented by
 their authors.
 
-Development
-===========
-
-Clone the repository, install Poetry, and run:
-
-.. code-block:: bash
-
-    poetry install
-    poetry run coverage run -m pytest
-    poetry run coverage report --fail-under=80
-    poetry run ruff check imcluster tests
-    poetry run mypy imcluster
-    poetry run sphinx-build -W -b html docs docs/_build/html
-    poetry build
-
-See ``CONTRIBUTING.rst`` for the contribution workflow. Issues may be reported
-at https://github.com/rbturnbull/imcluster/issues.
-
 Credits
--------
+===========
 
 .. start-credits
 

@@ -90,9 +90,10 @@ def test_invalid_input_prints_message_and_is_not_collected(tmp_path, capsys):
 
     assert store.images == []
     assert store.filenames == []
-    assert capsys.readouterr().out == (
-        f"File '{invalid}' does not have a valid extension.\n"
-    )
+    message = " ".join(capsys.readouterr().out.split())
+    assert message.startswith("Skipping input:")
+    assert "document.csv" in message
+    assert message.endswith("supported extension.")
 
 
 def test_columns_are_saved_to_and_loaded_from_parquet(tmp_path, image_factory):

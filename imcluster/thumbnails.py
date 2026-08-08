@@ -5,8 +5,11 @@ from io import BytesIO
 from pathlib import Path
 
 from PIL import Image, ImageOps, UnidentifiedImageError
+from rich.console import Console
 
 from .io import ImclusterIO
+
+console = Console()
 
 
 def generate_thumbnail(path: str | Path, width: int, height: int) -> str:
@@ -49,17 +52,27 @@ def generate_thumbnails(
     """
 
     if not imcluster_io.has_column("thumbnail") or force or force_thumbnails:
-        print(
-            f"Generating thumbnails within box ({thumbnail_width}x{thumbnail_height})"
+        console.print(
+            "[cyan]Generating thumbnails:[/cyan] "
+            f"{len(imcluster_io.images)} images, maximum size "
+            f"{thumbnail_width}x{thumbnail_height}; caching results in "
+            f"'{imcluster_io.output}'."
         )
-        imcluster_io.save_column(
-            "thumbnail",
-            imcluster_io.df.apply(
-                lambda row: generate_thumbnail(
-                    row["path"],
-                    thumbnail_width,
-                    thumbnail_height,
+        with console.status("[cyan]Creating and caching thumbnails...[/cyan]"):
+            imcluster_io.save_column(
+                "thumbnail",
+                imcluster_io.df.apply(
+                    lambda row: generate_thumbnail(
+                        row["path"],
+                        thumbnail_width,
+                        thumbnail_height,
+                    ),
+                    axis=1,
                 ),
-                axis=1,
-            ),
+            )
+    else:
+        console.print(
+            "[green]Using cached thumbnails:[/green] "
+            f"loaded {len(imcluster_io.images)} thumbnails from "
+            f"'{imcluster_io.output}'."
         )

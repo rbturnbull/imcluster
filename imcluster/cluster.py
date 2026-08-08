@@ -67,7 +67,11 @@ def cluster(
 
     cluster_column = f"{algorithm.value}_cluster"
     if imcluster_io.has_column(cluster_column) and not force:
-        console.print(f"Using precomputed {algorithm.value} clusters")
+        console.print(
+            f"[green]Using cached {algorithm.value} clusters:[/green] "
+            f"loaded {len(imcluster_io.images)} assignments from "
+            f"'{imcluster_io.output}'."
+        )
         return
 
     if min_samples < 1:
@@ -116,6 +120,16 @@ def cluster(
             metric="cosine",
         )
 
-    console.print(f"{algorithm.value} clustering")
-    labels = clustering.fit_predict(vectors)
-    imcluster_io.save_column(cluster_column, labels)
+    console.print(
+        f"[cyan]Running {algorithm.value} clustering:[/cyan] "
+        f"assigning {len(imcluster_io.images)} images."
+    )
+    with console.status(
+        f"[cyan]Computing {algorithm.value} cluster assignments...[/cyan]"
+    ):
+        labels = clustering.fit_predict(vectors)
+        imcluster_io.save_column(cluster_column, labels)
+    console.print(
+        f"[green]Cached {algorithm.value} clusters:[/green] "
+        f"wrote {len(labels)} assignments to '{imcluster_io.output}'."
+    )
