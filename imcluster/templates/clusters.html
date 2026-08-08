@@ -3,43 +3,51 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="data:image/png;base64,{{ favicon }}">
     <title>imcluster report</title>
     <style>{{ bootstrap_css|safe }}</style>
     <style>
-      :root { --report-header-height: 4rem; }
-      .report-logo { height: 2.75rem; max-width: 16rem; object-fit: contain; width: auto; }
+      :root { --imcluster-accent: #5C6BA4; --report-header-height: 4rem; }
+      .report-logo { height: 2.75rem; max-width: calc(100% - 2rem); object-fit: contain; width: auto; }
+      .logo-column { width: 100%; }
       .report-topbar { min-height: var(--report-header-height); }
       .report-sidebar { background: #fbfbfd; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 7rem); }
-      .sidebar-heading { color: #5661b3; font-weight: 700; }
+      .sidebar-heading, .cluster-heading { color: var(--imcluster-accent); font-family: inherit; font-weight: 700; }
       .gallery-search { max-width: 40rem; width: 100%; }
       .gallery-search .form-control { min-width: 10rem; }
       .cluster-link { color: #18233f; position: relative; transition: background-color .15s ease, color .15s ease; }
-      .cluster-link:hover { background: #f5f5fc; color: #404b9c; }
-      .cluster-link.active { background: #eef0ff; color: #4f5bb3; }
-      .cluster-link.active::before { background: #6670c5; border-radius: 999px; bottom: .45rem; content: ""; left: 0; position: absolute; top: .45rem; width: .2rem; }
-      .cluster-count { background: #eef0ff; color: #4f5bb3; }
+      .cluster-link:hover { background: #f5f5fc; color: var(--imcluster-accent); }
+      .cluster-link.active { background: #eef0ff; color: var(--imcluster-accent); }
+      .cluster-link.active::before { background: var(--imcluster-accent); border-radius: 999px; bottom: .45rem; content: ""; left: 0; position: absolute; top: .45rem; width: .2rem; }
+      .cluster-count, .badge.text-bg-primary { background-color: var(--imcluster-accent) !important; color: #fff !important; }
       .sidebar-thumbnail { border-radius: .5rem; height: 2.75rem; object-fit: cover; width: 2.75rem; }
       .gallery-image { height: 13rem; object-fit: contain; }
+      .image-filename { color: var(--imcluster-accent); font-family: inherit; font-size: 1.1rem; font-weight: 700; }
+      .copy-path { background-color: rgba(92, 107, 164, .5); border-color: rgba(92, 107, 164, .5); color: #fff; }
+      .copy-path:hover, .copy-path:focus { background-color: #4d5b90; border-color: #4d5b90; color: #fff; }
       .image-item { transition: opacity .15s ease; }
       .image-item.search-miss { opacity: .25; }
       .image-item.search-current .card { outline: .2rem solid #8e96dc; outline-offset: .15rem; }
       .cluster-section { scroll-margin-top: calc(var(--report-header-height) + 1rem); }
-      .metadata-shield .badge:first-child { border-radius: var(--bs-border-radius-pill) 0 0 var(--bs-border-radius-pill); }
-      .metadata-shield .badge:last-child { border-radius: 0 var(--bs-border-radius-pill) var(--bs-border-radius-pill) 0; }
+      .metadata-table { font-size: .75rem; }
+      .metadata-table th { color: var(--imcluster-accent); white-space: nowrap; }
       @media (min-width: 768px) {
+        .logo-column { width: 33.333333vw; }
         .report-sidebar { align-self: start; height: calc(100vh - var(--report-header-height)); min-height: calc(100vh - var(--report-header-height)); position: sticky; top: var(--report-header-height); }
         .sidebar-inner { height: 100%; overflow: hidden; }
         .cluster-list-scroll { min-height: 0; overflow-y: auto; }
       }
+      @media (min-width: 992px) { .logo-column { width: 25vw; } }
+      @media (min-width: 1200px) { .logo-column { width: 16.666667vw; } }
     </style>
   </head>
   <body>
-    <nav class="report-topbar navbar sticky-top bg-light border-bottom px-3 px-lg-4 py-2">
-      <div class="container-fluid align-items-center gap-3 px-0">
-        <a class="navbar-brand me-auto" href="https://github.com/rbturnbull/imcluster" target="_blank" rel="noopener noreferrer">
+    <nav class="report-topbar navbar sticky-top bg-light border-bottom p-0">
+      <div class="container-fluid flex-wrap flex-md-nowrap align-items-center gap-2 px-0">
+        <a class="logo-column navbar-brand d-flex flex-shrink-0 justify-content-center m-0" href="https://github.com/rbturnbull/imcluster" target="_blank" rel="noopener noreferrer">
           <img class="report-logo" src="data:image/png;base64,{{ header }}" alt="imcluster report">
         </a>
-        <div class="gallery-search input-group">
+        <div class="gallery-search input-group me-3 me-lg-4">
           <span class="input-group-text rounded-start-3">{{ search_icon|safe }}</span>
           <input id="image-search" class="form-control" type="search" placeholder="Search images..." aria-label="Search images">
           <button id="search-previous" class="btn btn-outline-secondary" type="button" disabled>Previous</button>
@@ -64,19 +72,25 @@
                   </a>
                 {% endfor %}
               </div>
-              <div class="d-flex flex-column align-items-start gap-1 border-top mt-3 pt-3">
-                {% for key, value in metadata.items() %}
-                  <span class="metadata-shield d-inline-flex mw-100">
-                    <span class="badge text-bg-secondary">{{ key }}</span>
-                    {% if key == "Model" %}
-                      <a class="badge text-bg-primary text-decoration-none text-truncate" href="https://huggingface.co/{{ value }}" target="_blank" rel="noopener noreferrer">{{ value }}</a>
-                    {% elif key == "Clustering" %}
-                      <a class="badge text-bg-primary text-decoration-none" href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" rel="noopener noreferrer">{{ value }}</a>
-                    {% else %}
-                      <span class="badge text-bg-primary">{{ value }}</span>
-                    {% endif %}
-                  </span>
-                {% endfor %}
+              <div class="border-top mt-3 pt-3">
+                <table class="metadata-table table table-sm small mb-0">
+                  <tbody>
+                    {% for key, value in metadata.items() %}
+                      <tr>
+                        <th scope="row">{{ key }}</th>
+                        <td class="text-break">
+                          {% if key == "Model" %}
+                            <a href="https://huggingface.co/{{ value }}" target="_blank" rel="noopener noreferrer">{{ value }}</a>
+                          {% elif key == "Clustering" %}
+                            <a href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" rel="noopener noreferrer">{{ value }}</a>
+                          {% else %}
+                            {{ value }}
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
               </div>
             </div>
           </nav>
@@ -84,11 +98,11 @@
 
         <main class="col p-3 p-lg-4">
           {% for key, items in data.items() %}
-            {% if not loop.first %}<hr class="cluster-divider my-5">{% endif %}
+            {% if not loop.first %}<hr class="cluster-divider mt-5 mb-0">{% endif %}
             <section id="cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}" class="cluster-section mb-5">
-              <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="h3 mb-0">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</h2>
-                <span class="badge text-bg-primary rounded-pill">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
+              <div class="d-flex align-items-baseline gap-5 mb-3">
+                <h2 class="cluster-heading h3 mb-0">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</h2>
+                <span class="text-body-secondary fst-italic small">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
               </div>
               <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3">
                 {% for item in items %}
@@ -98,8 +112,8 @@
                         <img class="card-img-top gallery-image bg-body-tertiary" src="data:image/jpeg;base64,{{ item.thumbnail }}" alt="Thumbnail of {{ item.filename }}" loading="lazy">
                       </a>
                       <div class="card-body d-flex align-items-start justify-content-between gap-2">
-                        <h3 class="card-title h6 mb-0 text-break">{{ item.filename }}</h3>
-                        <button class="btn btn-sm btn-success copy-path flex-shrink-0" type="button" data-path="{{ item.path }}" data-bs-toggle="tooltip" data-bs-title="Copy full path" aria-label="Copy full path">{{ copy_icon|safe }}<span class="visually-hidden">Copy full path</span></button>
+                        <h3 class="image-filename card-title h6 mb-0 text-break">{{ item.filename }}</h3>
+                        <button class="btn btn-sm copy-path flex-shrink-0" type="button" data-path="{{ item.path }}" data-bs-toggle="tooltip" data-bs-title="Copy full path" aria-label="Copy full path">{{ copy_icon|safe }}<span class="visually-hidden">Copy full path</span></button>
                       </div>
                     </article>
                   </div>
@@ -112,7 +126,7 @@
     </div>
 
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="path-toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+      <div id="path-toast" class="toast fade" role="status" aria-live="polite" aria-atomic="true">
         <div class="toast-header">
           <strong class="me-auto">Path copied</strong>
           <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -126,7 +140,11 @@
       (() => {
         const toastElement = document.getElementById("path-toast");
         const toastPath = document.getElementById("toast-path");
-        const toast = bootstrap.Toast.getOrCreateInstance(toastElement);
+        const toast = bootstrap.Toast.getOrCreateInstance(toastElement, {
+          animation: true,
+          autohide: true,
+          delay: 5000,
+        });
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
           bootstrap.Tooltip.getOrCreateInstance(element);
         });

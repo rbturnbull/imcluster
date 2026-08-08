@@ -117,12 +117,17 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert "<script>alert(1)</script>.jpg" not in rendered
     assert "data:image/jpeg;base64," in rendered
     assert "data:image/png;base64," in rendered
+    assert '<link rel="icon" type="image/png" href="data:image/png;base64,' in rendered
     assert 'class="report-logo"' in rendered
     assert 'class="report-topbar navbar sticky-top bg-light border-bottom' in rendered
+    assert (
+        'class="logo-column navbar-brand d-flex flex-shrink-0 '
+        'justify-content-center m-0"' in rendered
+    )
     assert 'id="cluster-contents"' in rendered
     assert ">1 clusters</h2>" in rendered
     assert 'placeholder="Search images..."' in rendered
-    assert 'class="gallery-search input-group"' in rendered
+    assert 'class="gallery-search input-group me-3 me-lg-4"' in rendered
     assert 'class="bi bi-search"' in rendered
     assert 'class="cluster-count badge rounded-pill">1</span>' in rendered
     assert (
@@ -138,21 +143,29 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert "Sidebar colour" not in rendered
     assert "imcluster-sidebar-theme" not in rendered
     assert "Bootstrap v5.3.8" in rendered
-    assert rendered.count('class="metadata-shield d-inline-flex mw-100"') == 4
-    assert ">Clustering</span>" in rendered
+    assert 'class="metadata-table table table-sm small mb-0"' in rendered
+    assert rendered.count('<th scope="row">') == 4
+    assert ">Clustering</th>" in rendered
     assert ">spectral</a>" in rendered
-    assert ">Images</span>" in rendered
-    assert ">Architecture</span>" not in rendered
-    assert ">Generated</span>" in rendered
-    assert "UTC</span>" in rendered
+    assert ">Images</th>" in rendered
+    assert ">Architecture</th>" not in rendered
+    assert ">Generated</th>" in rendered
+    assert "UTC" in rendered
     assert 'class="card h-100 shadow-sm"' in rendered
-    assert 'class="btn btn-sm btn-success copy-path flex-shrink-0"' in rendered
+    assert "--imcluster-accent: #5C6BA4" in rendered
+    assert 'class="cluster-heading h3 mb-0"' in rendered
+    assert 'class="d-flex align-items-baseline gap-5 mb-3"' in rendered
+    assert 'class="text-body-secondary fst-italic small">1 image</span>' in rendered
+    assert 'class="image-filename card-title h6 mb-0 text-break"' in rendered
+    assert 'class="btn btn-sm copy-path flex-shrink-0"' in rendered
     assert 'data-bs-title="Copy full path" aria-label="Copy full path"' in rendered
     assert 'class="bi bi-copy"' in rendered
     assert '<span class="visually-hidden">Copy full path</span>' in rendered
     assert "bootstrap.Tooltip.getOrCreateInstance(element)" in rendered
     assert 'data-path="' in rendered
     assert 'id="path-toast"' in rendered
+    assert 'id="path-toast" class="toast fade"' in rendered
+    assert "delay: 5000" in rendered
     assert "toastPath.textContent = path" in rendered
     assert "<details" not in rendered
     assert "<summary" not in rendered

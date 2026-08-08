@@ -32,6 +32,11 @@ weights are cached or accessible and otherwise falls back to `DINOv2
 clustering is the default, with DBSCAN available when the number of groups is
 not known.
 
+.. image:: docs/assets/gallery-screenshot.png
+   :alt: Example imcluster gallery showing clustered image cards and navigation
+   :align: center
+   :width: 100%
+
 .. start-quickstart
 
 Installation
