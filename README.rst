@@ -22,6 +22,8 @@ By default, ``imcluster`` uses DINOv3 when its weights are cached or accessible
 and otherwise falls back to DINOv2. Spectral clustering is the default, with
 DBSCAN available when the number of groups is not known.
 
+.. start-quickstart
+
 Installation
 ============
 
@@ -165,6 +167,8 @@ HDBSCAN also discovers groups and noise while adapting to varying densities::
 
 Run ``imcluster --help`` for the complete command-line reference.
 
+.. end-quickstart
+
 Limitations
 ===========
 
@@ -192,8 +196,11 @@ at https://github.com/rbturnbull/imcluster/issues.
 Credits
 -------
 
+.. start-credits
+
 ``imcluster`` is maintained by `Robert Turnbull <https://robturnbull.com>`_ at
 the `Melbourne Data Analytics Platform <https://www.unimelb.edu.au/mdap>`_.
 `Zaher Joukhadar <https://joukhadar.me/>`_ was instrumental in the original
-idea, and James
-Quang helped implement DINO feature extraction.
+idea, and James Quang helped implement DINO feature extraction.
+
+.. end-credits
