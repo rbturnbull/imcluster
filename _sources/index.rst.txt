@@ -9,8 +9,10 @@ creates a cached dataset plus a standalone HTML report.
    :maxdepth: 2
    :caption: Contents
 
+   quickstart
    usage
    models
    cli
    development
    references
+   credits

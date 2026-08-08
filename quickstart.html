@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quickstart &mdash; imcluster 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="imcluster documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            imcluster
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quickstart</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inference">Inference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clustering">Clustering</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command-line reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="credits.html">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">imcluster</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quickstart</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quickstart.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">imcluster</span></code> requires Python 3.10–3.13:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">imcluster</span>
+</pre></div>
+</div>
+<p>DINOv2 presets are public and require no authentication. DINOv3 model
+repositories are gated. Before using <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">3</span></code>:</p>
+<ol class="arabic">
+<li><p>Sign in to Hugging Face and open the <a class="reference external" href="https://huggingface.co/facebook/dinov3-vitb16-pretrain-lvd1689m">DINOv3 ViT-B/16 model page</a>.</p></li>
+<li><p>Review and accept Meta’s DINOv3 license and agree to share the requested
+contact information. Approval is usually automatic, but access can take
+several minutes (often 5–15 minutes) to propagate.</p></li>
+<li><p>Authenticate the machine that will run <code class="docutils literal notranslate"><span class="pre">imcluster</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span> <span class="n">auth</span> <span class="n">login</span>
+</pre></div>
+</div>
+<p>This opens Hugging Face’s browser login flow and stores the resulting token
+locally. Confirm the active account with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hf</span> <span class="n">auth</span> <span class="n">whoami</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>For a server or non-interactive environment, create a read token in <a class="reference external" href="https://huggingface.co/settings/tokens">Hugging
+Face token settings</a> and expose it to
+the process instead:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">export</span> <span class="n">HF_TOKEN</span><span class="o">=</span><span class="n">hf_your_token_here</span>
+</pre></div>
+</div>
+<p>Never commit a Hugging Face token to the repository or place it directly in a
+script. Accepting access on the website and authenticating locally are both
+required; a valid token from an account without model access cannot download
+the weights.</p>
+<p>DINOv2 weights use the Apache License 2.0. DINOv3 weights use the DINOv3
+license; the <code class="docutils literal notranslate"><span class="pre">imcluster</span></code> source code uses the Apache License 2.0.</p>
+</section>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<p>Cluster the images directly inside a directory and open the gallery:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Include nested directories, request 12 groups, and preserve the outputs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span> <span class="o">--</span><span class="n">recursive</span> <span class="o">--</span><span class="n">n</span><span class="o">-</span><span class="n">clusters</span> <span class="mi">12</span> \
+    <span class="o">--</span><span class="n">cache</span> <span class="n">results</span><span class="o">.</span><span class="n">parquet</span> <span class="o">--</span><span class="n">gallery</span> <span class="n">clusters</span><span class="o">.</span><span class="n">html</span>
+</pre></div>
+</div>
+<p>Inputs may be individual image files, directories, or UTF-8 text manifests with
+one image path per line. Relative manifest entries are resolved from the
+manifest’s directory. Supported formats are PNG, JPEG, TIFF, BMP, and GIF.</p>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading"></a></h3>
+<p>Without output options, <code class="docutils literal notranslate"><span class="pre">imcluster</span></code> writes temporary processing data and a
+temporary HTML gallery, then opens the gallery in the default browser. Pass
+<code class="docutils literal notranslate"><span class="pre">--no-open</span></code> to suppress browser launching.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--cache</span> <span class="pre">PATH</span></code> preserves the Parquet cache, which contains resolved paths,
+filenames, feature vectors, cluster labels, thumbnails, and run metadata.
+<code class="docutils literal notranslate"><span class="pre">--gallery</span> <span class="pre">PATH</span></code> preserves the standalone HTML gallery. It embeds its styles
+and JPEG thumbnails and does not require an internet connection.</p>
+<p>If the input list no longer matches an existing cache, <code class="docutils literal notranslate"><span class="pre">imcluster</span></code> stops with
+a clear error. Pass <code class="docutils literal notranslate"><span class="pre">--force</span></code> to intentionally replace the cache. More
+targeted controls are available as <code class="docutils literal notranslate"><span class="pre">--force-features</span></code>, <code class="docutils literal notranslate"><span class="pre">--force-cluster</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">--force-thumbnails</span></code>.</p>
+</section>
+</section>
+<section id="models">
+<h2>Models<a class="headerlink" href="#models" title="Link to this heading"></a></h2>
+<p>The default selection is <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">auto</span> <span class="pre">--size</span> <span class="pre">base</span></code>. Automatic mode
+uses DINOv3 when the selected model is cached or accessible with the active
+Hugging Face account. Otherwise it reports the fallback and uses DINOv2.</p>
+<p>Explicit DINOv2 selection uses <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">2</span></code>. Its presets are <code class="docutils literal notranslate"><span class="pre">small</span></code>,
+<code class="docutils literal notranslate"><span class="pre">base</span></code>, <code class="docutils literal notranslate"><span class="pre">large</span></code>, and <code class="docutils literal notranslate"><span class="pre">max</span></code>; <code class="docutils literal notranslate"><span class="pre">max</span></code> selects DINOv2 Giant. For DINOv2,
+<code class="docutils literal notranslate"><span class="pre">--arch</span></code> is ignored. In automatic mode, <code class="docutils literal notranslate"><span class="pre">tiny</span></code> falls back to DINOv2 Small
+and <code class="docutils literal notranslate"><span class="pre">huge</span></code> falls back to DINOv2 Giant.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Size</p></th>
+<th class="head"><p>Hugging Face model</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>small</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov2-small</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>base</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov2-base</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>large</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov2-large</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>max</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov2-giant</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>DINOv3 is selected with <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">3</span></code>. Its available presets are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Architecture</p></th>
+<th class="head"><p>Size</p></th>
+<th class="head"><p>Hugging Face model</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>tiny</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vits16-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>small</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vits16plus-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>base</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vitb16-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>large</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vitl16-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>huge</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vith16plus-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">vit</span></code></p></td>
+<td><p>max</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-vit7b16-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">convnext</span></code></p></td>
+<td><p>tiny</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-convnext-tiny-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">convnext</span></code></p></td>
+<td><p>small</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-convnext-small-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">convnext</span></code></p></td>
+<td><p>base</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-convnext-base-pretrain-lvd1689m</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">convnext</span></code></p></td>
+<td><p>large</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">facebook/dinov3-convnext-large-pretrain-lvd1689m</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>An arbitrary compatible Hugging Face model overrides the preset:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span> <span class="o">--</span><span class="n">model</span> <span class="n">organization</span><span class="o">/</span><span class="n">model</span><span class="o">-</span><span class="nb">id</span>
+</pre></div>
+</div>
+</section>
+<section id="inference">
+<h2>Inference<a class="headerlink" href="#inference" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">--device</span> <span class="pre">auto</span></code> selects CUDA, then Apple MPS, then CPU. A device can be
+selected explicitly with <code class="docutils literal notranslate"><span class="pre">--device</span> <span class="pre">cpu|cuda|mps</span></code>. <code class="docutils literal notranslate"><span class="pre">--batch-size</span></code> defaults
+to 8; reduce it if inference runs out of memory.</p>
+<p>ViT-B is suitable for a quality-oriented default but can be slow on CPU.
+<code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">2</span> <span class="pre">--size</span> <span class="pre">small</span></code> or <code class="docutils literal notranslate"><span class="pre">--dino-version</span> <span class="pre">3</span> <span class="pre">--size</span> <span class="pre">tiny</span></code> provides
+a lighter run. The largest variants require substantial accelerator memory.</p>
+</section>
+<section id="clustering">
+<h2>Clustering<a class="headerlink" href="#clustering" title="Link to this heading"></a></h2>
+<p>Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
+count:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span> <span class="o">--</span><span class="n">clustering</span> <span class="n">spectral</span> <span class="o">--</span><span class="n">n</span><span class="o">-</span><span class="n">clusters</span> <span class="mi">10</span>
+</pre></div>
+</div>
+<p>DBSCAN discovers groups and marks outliers as the noise cluster:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span> <span class="o">--</span><span class="n">clustering</span> <span class="n">dbscan</span> \
+    <span class="o">--</span><span class="n">dbscan</span><span class="o">-</span><span class="n">eps</span> <span class="mf">0.35</span> <span class="o">--</span><span class="nb">min</span><span class="o">-</span><span class="n">samples</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>HDBSCAN also discovers groups and noise while adapting to varying densities:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">imcluster</span> <span class="n">photos</span><span class="o">/</span> <span class="o">--</span><span class="n">clustering</span> <span class="n">hdbscan</span> <span class="o">--</span><span class="nb">min</span><span class="o">-</span><span class="n">samples</span> <span class="mi">5</span>
+</pre></div>
+</div>
+<p>Run <code class="docutils literal notranslate"><span class="pre">imcluster</span> <span class="pre">--help</span></code> for the complete command-line reference.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="imcluster documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2026, Robert Turnbull.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
