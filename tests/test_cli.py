@@ -240,6 +240,7 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
             "Algorithm": "dbscan",
             "Images": "2",
         },
+        "feature_vectors": [[1.0], [2.0]],
     }
 
 

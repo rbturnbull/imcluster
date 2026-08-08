@@ -12,7 +12,9 @@
       .metadata span { white-space: nowrap; }
       .contents { margin-bottom: 2rem; }
       .contents ul { display: grid; gap: .5rem; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; }
-      .contents a { align-items: flex-start; border: 1px solid #8886; border-radius: .35rem; display: flex; flex-direction: column; gap: .4rem; padding: .4rem .65rem; text-decoration: none; }
+      .contents a { align-items: center; border: 1px solid #8886; border-radius: .35rem; display: grid; gap: .65rem; grid-template-columns: 3.5rem minmax(0, 1fr); padding: .4rem; text-decoration: none; }
+      .contents-thumbnail { background: #8882; border-radius: .25rem; height: 3.5rem; object-fit: cover; width: 3.5rem; }
+      .contents-text { align-items: flex-start; display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
       .badge { background: #777; border-radius: 999px; color: white; display: block; font-size: .75rem; line-height: 1; padding: .3rem .55rem; text-align: center; width: fit-content; }
       summary .badge { margin-top: .4rem; }
       details { border-top: 1px solid #8886; padding: 1rem 0; }
@@ -50,8 +52,11 @@
         {% for key, items in data.items() %}
           <li>
             <a href="#cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}">
-              {% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}
-              <span class="badge">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
+              <img class="contents-thumbnail" src="data:image/jpeg;base64,{{ representatives[key] }}" alt="Representative image for {% if key == -1 %}noise{% else %}cluster {{ key + 1 }}{% endif %}">
+              <span class="contents-text">
+                {% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}
+                <span class="badge">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
+              </span>
             </a>
           </li>
         {% endfor %}

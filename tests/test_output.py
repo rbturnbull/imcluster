@@ -1,10 +1,11 @@
 import base64
 from io import BytesIO
 
+import numpy as np
 import pytest
 from PIL import Image
 
-from imcluster.html import write_html
+from imcluster.html import representative_indices, write_html
 from imcluster.io import ImclusterIO
 from imcluster.thumbnails import generate_thumbnail, generate_thumbnails
 
@@ -50,6 +51,38 @@ def test_generate_thumbnails_generates_and_persists_thumbnails(tmp_path, image_f
 
     assert store.has_column("thumbnail")
     assert len(store.get_column("thumbnail")) == 2
+
+
+def test_representative_indices_select_cosine_medoids():
+    labels = np.array([0, 0, 0, 1])
+    features = np.array([[1.0, 0.0], [1.0, 1.0], [0.0, 1.0], [-1.0, 0.0]])
+
+    assert representative_indices(labels, features) == {0: 1, 1: 3}
+
+
+def test_representative_indices_require_one_vector_per_label():
+    with pytest.raises(ValueError, match="one row per cluster label"):
+        representative_indices([0, 1], [[1.0, 0.0]])
+
+
+def test_write_html_uses_cluster_medoid_in_contents(tmp_path, image_factory):
+    images = [image_factory(f"{index}.jpg") for index in range(3)]
+    store = ImclusterIO(images, tmp_path / "results.parquet")
+    store.df["spectral_cluster"] = [0, 0, 0]
+    store.df["thumbnail"] = ["edge-one", "representative", "edge-two"]
+    output = tmp_path / "clusters.html"
+
+    write_html(
+        store,
+        output,
+        feature_vectors=np.array([[1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]),
+    )
+
+    rendered = output.read_text()
+    assert (
+        'class="contents-thumbnail" '
+        'src="data:image/jpeg;base64,representative"' in rendered
+    )
 
 
 def test_write_html_groups_images_by_cluster_and_escapes_filenames(

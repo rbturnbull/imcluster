@@ -200,6 +200,7 @@ def main(
             "Algorithm": clustering.value,
             "Images": str(len(imcluster_io.images)),
         },
+        feature_vectors=feature_vectors,
     )
     if not no_open:
         open_gallery(output_html)
