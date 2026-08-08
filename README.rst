@@ -25,9 +25,12 @@
 vision models. It produces a reusable cache and a self-contained HTML
 gallery organized by cluster.
 
-By default, ``imcluster`` uses DINOv3 when its weights are cached or accessible
-and otherwise falls back to DINOv2. Spectral clustering is the default, with
-DBSCAN available when the number of groups is not known.
+By default, ``imcluster`` uses `DINOv3
+<https://huggingface.co/docs/transformers/en/model_doc/dinov3>`_ when its
+weights are cached or accessible and otherwise falls back to `DINOv2
+<https://huggingface.co/docs/transformers/en/model_doc/dinov2>`_. Spectral
+clustering is the default, with DBSCAN available when the number of groups is
+not known.
 
 .. start-quickstart
 

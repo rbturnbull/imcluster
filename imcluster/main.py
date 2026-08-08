@@ -197,7 +197,7 @@ def main(
         cluster_column=f"{clustering.value}_cluster",
         metadata={
             "Model": model_name,
-            "Algorithm": clustering.value,
+            "Clustering": clustering.value,
             "Images": str(len(imcluster_io.images)),
         },
         feature_vectors=feature_vectors,

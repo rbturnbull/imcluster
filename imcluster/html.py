@@ -114,11 +114,21 @@ def write_html(
     header = base64.b64encode(
         files("imcluster").joinpath("assets/imcluster-header.png").read_bytes()
     ).decode("ascii")
+    bootstrap_css = files("imcluster").joinpath("assets/bootstrap.min.css").read_text()
+    bootstrap_js = (
+        files("imcluster").joinpath("assets/bootstrap.bundle.min.js").read_text()
+    )
+    copy_icon = files("imcluster").joinpath("assets/copy.svg").read_text()
+    search_icon = files("imcluster").joinpath("assets/search.svg").read_text()
     result = template.render(
         data=data,
         metadata=report_metadata,
         header=header,
         representatives=representatives,
+        bootstrap_css=bootstrap_css,
+        bootstrap_js=bootstrap_js,
+        copy_icon=copy_icon,
+        search_icon=search_icon,
     )
 
     with open(output_html, "w", encoding="utf-8") as f:

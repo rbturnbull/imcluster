@@ -237,7 +237,7 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
         "cluster_column": "dbscan_cluster",
         "metadata": {
             "Model": "facebook/dinov2-base",
-            "Algorithm": "dbscan",
+            "Clustering": "dbscan",
             "Images": "2",
         },
         "feature_vectors": [[1.0], [2.0]],

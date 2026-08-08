@@ -80,7 +80,7 @@ def test_write_html_uses_cluster_medoid_in_contents(tmp_path, image_factory):
 
     rendered = output.read_text()
     assert (
-        'class="contents-thumbnail" '
+        'class="sidebar-thumbnail flex-shrink-0" '
         'src="data:image/jpeg;base64,representative"' in rendered
     )
 
@@ -100,7 +100,8 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
         output,
         metadata={
             "Model": "facebook/dinov3-vitb16-pretrain-lvd1689m",
-            "Algorithm": "spectral",
+            "Clustering": "spectral",
+            "Images": "1",
         },
     )
     rendered = output.read_text()
@@ -109,14 +110,54 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert 'aria-label="Cluster table of contents"' in rendered
     assert 'href="#cluster-4"' in rendered
     assert 'id="cluster-4"' in rendered
-    assert rendered.count('<span class="badge">1 image</span>') == 2
+    assert rendered.count(">1 image</span>") == 1
     assert "Cluster 4 (1)" not in rendered
     assert "encoded-thumbnail" in rendered
     assert "&lt;script&gt;alert(1)&lt;/script&gt;.jpg" in rendered
     assert "<script>alert(1)</script>.jpg" not in rendered
     assert "data:image/jpeg;base64," in rendered
     assert "data:image/png;base64," in rendered
-    assert 'class="report-header"' in rendered
+    assert 'class="report-logo"' in rendered
+    assert 'class="report-topbar navbar sticky-top bg-light border-bottom' in rendered
+    assert 'id="cluster-contents"' in rendered
+    assert ">1 clusters</h2>" in rendered
+    assert 'placeholder="Search images..."' in rendered
+    assert 'class="gallery-search input-group"' in rendered
+    assert 'class="bi bi-search"' in rendered
+    assert 'class="cluster-count badge rounded-pill">1</span>' in rendered
+    assert (
+        'class="image-item col" data-image-name="'
+        '&lt;script&gt;alert(1)&lt;/script&gt;.jpg"' in rendered
+    )
+    assert 'id="search-previous"' in rendered
+    assert 'id="search-next"' in rendered
+    assert 'id="search-position"' in rendered
+    assert 'image.classList.toggle("search-miss"' in rendered
+    assert "scrollIntoView" in rendered
+    assert "`${matchIndex + 1} of ${matches.length}`" in rendered
+    assert "Sidebar colour" not in rendered
+    assert "imcluster-sidebar-theme" not in rendered
+    assert "Bootstrap v5.3.8" in rendered
+    assert rendered.count('class="metadata-shield d-inline-flex mw-100"') == 4
+    assert ">Clustering</span>" in rendered
+    assert ">spectral</a>" in rendered
+    assert ">Images</span>" in rendered
+    assert ">Architecture</span>" not in rendered
+    assert ">Generated</span>" in rendered
+    assert "UTC</span>" in rendered
+    assert 'class="card h-100 shadow-sm"' in rendered
+    assert 'class="btn btn-sm btn-success copy-path flex-shrink-0"' in rendered
+    assert 'data-bs-title="Copy full path" aria-label="Copy full path"' in rendered
+    assert 'class="bi bi-copy"' in rendered
+    assert '<span class="visually-hidden">Copy full path</span>' in rendered
+    assert "bootstrap.Tooltip.getOrCreateInstance(element)" in rendered
+    assert 'data-path="' in rendered
+    assert 'id="path-toast"' in rendered
+    assert "toastPath.textContent = path" in rendered
+    assert "<details" not in rendered
+    assert "<summary" not in rendered
+    assert 'class="path"' not in rendered
+    assert "border-bottom pb-2" not in rendered
     assert 'href="https://github.com/rbturnbull/imcluster"' in rendered
     assert f'href="{image.resolve().as_uri()}"' in rendered
     assert 'target="_blank"' in rendered
@@ -141,7 +182,7 @@ def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):
 
     rendered = output.read_text()
     assert "Noise" in rendered
-    assert rendered.count('<span class="badge">2 images</span>') == 2
+    assert rendered.count(">2 images</span>") == 1
 
 
 def test_write_html_defaults_beside_parquet_output(tmp_path, image_factory):

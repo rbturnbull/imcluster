@@ -1,84 +1,197 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>imcluster report</title>
+    <style>{{ bootstrap_css|safe }}</style>
     <style>
-      :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-      body { margin: 0 auto; max-width: 96rem; padding: 2rem; }
-      .report-header { display: block; height: auto; margin-bottom: 1rem; max-width: 32rem; width: 100%; }
-      .metadata { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin-bottom: 2rem; }
-      .metadata span { white-space: nowrap; }
-      .contents { margin-bottom: 2rem; }
-      .contents ul { display: grid; gap: .5rem; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; padding: 0; }
-      .contents a { align-items: center; border: 1px solid #8886; border-radius: .35rem; display: grid; gap: .65rem; grid-template-columns: 3.5rem minmax(0, 1fr); padding: .4rem; text-decoration: none; }
-      .contents-thumbnail { background: #8882; border-radius: .25rem; height: 3.5rem; object-fit: cover; width: 3.5rem; }
-      .contents-text { align-items: flex-start; display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
-      .badge { background: #777; border-radius: 999px; color: white; display: block; font-size: .75rem; line-height: 1; padding: .3rem .55rem; text-align: center; width: fit-content; }
-      summary .badge { margin-top: .4rem; }
-      details { border-top: 1px solid #8886; padding: 1rem 0; }
-      summary { cursor: pointer; font-size: 1.25rem; font-weight: 650; }
-      .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); margin-top: 1rem; }
-      figure { margin: 0; min-width: 0; }
-      figure img { background: #8882; border-radius: .35rem; display: block; height: 12rem; object-fit: contain; width: 100%; }
-      figcaption { font-size: .85rem; overflow-wrap: anywhere; padding-top: .35rem; }
-      .path { color: #777; display: block; font-size: .75rem; }
-      @media (max-width: 48rem) { .contents ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-      @media (max-width: 28rem) { .contents ul { grid-template-columns: 1fr; } }
+      :root { --report-header-height: 4rem; }
+      .report-logo { height: 2.75rem; max-width: 16rem; object-fit: contain; width: auto; }
+      .report-topbar { min-height: var(--report-header-height); }
+      .report-sidebar { background: #fbfbfd; border-right: 1px solid #e5e7eb; min-height: calc(100vh - 7rem); }
+      .sidebar-heading { color: #5661b3; font-weight: 700; }
+      .gallery-search { max-width: 40rem; width: 100%; }
+      .gallery-search .form-control { min-width: 10rem; }
+      .cluster-link { color: #18233f; position: relative; transition: background-color .15s ease, color .15s ease; }
+      .cluster-link:hover { background: #f5f5fc; color: #404b9c; }
+      .cluster-link.active { background: #eef0ff; color: #4f5bb3; }
+      .cluster-link.active::before { background: #6670c5; border-radius: 999px; bottom: .45rem; content: ""; left: 0; position: absolute; top: .45rem; width: .2rem; }
+      .cluster-count { background: #eef0ff; color: #4f5bb3; }
+      .sidebar-thumbnail { border-radius: .5rem; height: 2.75rem; object-fit: cover; width: 2.75rem; }
+      .gallery-image { height: 13rem; object-fit: contain; }
+      .image-item { transition: opacity .15s ease; }
+      .image-item.search-miss { opacity: .25; }
+      .image-item.search-current .card { outline: .2rem solid #8e96dc; outline-offset: .15rem; }
+      .cluster-section { scroll-margin-top: calc(var(--report-header-height) + 1rem); }
+      .metadata-shield .badge:first-child { border-radius: var(--bs-border-radius-pill) 0 0 var(--bs-border-radius-pill); }
+      .metadata-shield .badge:last-child { border-radius: 0 var(--bs-border-radius-pill) var(--bs-border-radius-pill) 0; }
+      @media (min-width: 768px) {
+        .report-sidebar { align-self: start; height: calc(100vh - var(--report-header-height)); min-height: calc(100vh - var(--report-header-height)); position: sticky; top: var(--report-header-height); }
+        .sidebar-inner { height: 100%; overflow: hidden; }
+        .cluster-list-scroll { min-height: 0; overflow-y: auto; }
+      }
     </style>
   </head>
   <body>
-    <a href="https://github.com/rbturnbull/imcluster" target="_blank" rel="noopener noreferrer">
-      <img class="report-header" src="data:image/png;base64,{{ header }}" alt="imcluster report">
-    </a>
-    <div class="metadata">
-      {% for key, value in metadata.items() %}
-        <span>
-          <strong>{{ key }}:</strong>
-          {% if key == "Model" %}
-            <a href="https://huggingface.co/{{ value }}" target="_blank" rel="noopener noreferrer">{{ value }}</a>
-          {% elif key == "Algorithm" %}
-            <a href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" rel="noopener noreferrer">{{ value }}</a>
-          {% else %}
-            {{ value }}
-          {% endif %}
-        </span>
-      {% endfor %}
-    </div>
-    <nav class="contents" aria-label="Cluster table of contents">
-      <h2>Clusters</h2>
-      <ul>
-        {% for key, items in data.items() %}
-          <li>
-            <a href="#cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}">
-              <img class="contents-thumbnail" src="data:image/jpeg;base64,{{ representatives[key] }}" alt="Representative image for {% if key == -1 %}noise{% else %}cluster {{ key + 1 }}{% endif %}">
-              <span class="contents-text">
-                {% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}
-                <span class="badge">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
-              </span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    </nav>
-    {% for key, items in data.items() %}
-      <details id="cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}" open>
-        <summary>
-          {% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}
-          <span class="badge">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
-        </summary>
-        <div class="grid">
-          {% for item in items %}
-            <figure>
-              <a href="{{ item.file_uri }}" target="_blank">
-                <img src="data:image/jpeg;base64,{{ item.thumbnail }}" alt="Thumbnail of {{ item.filename }}" loading="lazy">
-              </a>
-              <figcaption>{{ item.filename }}<span class="path">{{ item.path }}</span></figcaption>
-            </figure>
-          {% endfor %}
+    <nav class="report-topbar navbar sticky-top bg-light border-bottom px-3 px-lg-4 py-2">
+      <div class="container-fluid align-items-center gap-3 px-0">
+        <a class="navbar-brand me-auto" href="https://github.com/rbturnbull/imcluster" target="_blank" rel="noopener noreferrer">
+          <img class="report-logo" src="data:image/png;base64,{{ header }}" alt="imcluster report">
+        </a>
+        <div class="gallery-search input-group">
+          <span class="input-group-text rounded-start-3">{{ search_icon|safe }}</span>
+          <input id="image-search" class="form-control" type="search" placeholder="Search images..." aria-label="Search images">
+          <button id="search-previous" class="btn btn-outline-secondary" type="button" disabled>Previous</button>
+          <button id="search-next" class="btn btn-outline-secondary" type="button" disabled>Next</button>
+          <span id="search-position" class="input-group-text border-start" aria-live="polite">0 of 0</span>
         </div>
-      </details>
-    {% endfor %}
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <aside class="report-sidebar col-12 col-md-4 col-lg-3 col-xl-2 p-0">
+          <nav id="cluster-contents" class="sidebar-inner d-flex flex-column p-3" aria-label="Cluster table of contents">
+            <h2 class="sidebar-heading h5 mb-3">{{ data|length }} clusters</h2>
+            <div class="cluster-list-scroll flex-grow-1">
+              <div id="cluster-list" class="d-flex flex-column gap-1">
+                {% for key, items in data.items() %}
+                  <a class="cluster-link d-flex align-items-center gap-2 rounded-3 px-2 py-2 text-decoration-none{% if loop.first %} active{% endif %}" href="#cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}"{% if loop.first %} aria-current="true"{% endif %}>
+                    <img class="sidebar-thumbnail flex-shrink-0" src="data:image/jpeg;base64,{{ representatives[key] }}" alt="Representative image for {% if key == -1 %}noise{% else %}cluster {{ key + 1 }}{% endif %}">
+                    <span class="flex-grow-1 text-truncate">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</span>
+                    <span class="cluster-count badge rounded-pill">{{ items|length }}</span>
+                  </a>
+                {% endfor %}
+              </div>
+              <div class="d-flex flex-column align-items-start gap-1 border-top mt-3 pt-3">
+                {% for key, value in metadata.items() %}
+                  <span class="metadata-shield d-inline-flex mw-100">
+                    <span class="badge text-bg-secondary">{{ key }}</span>
+                    {% if key == "Model" %}
+                      <a class="badge text-bg-primary text-decoration-none text-truncate" href="https://huggingface.co/{{ value }}" target="_blank" rel="noopener noreferrer">{{ value }}</a>
+                    {% elif key == "Clustering" %}
+                      <a class="badge text-bg-primary text-decoration-none" href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" rel="noopener noreferrer">{{ value }}</a>
+                    {% else %}
+                      <span class="badge text-bg-primary">{{ value }}</span>
+                    {% endif %}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          </nav>
+        </aside>
+
+        <main class="col p-3 p-lg-4">
+          {% for key, items in data.items() %}
+            {% if not loop.first %}<hr class="cluster-divider my-5">{% endif %}
+            <section id="cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}" class="cluster-section mb-5">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h2 class="h3 mb-0">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</h2>
+                <span class="badge text-bg-primary rounded-pill">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
+              </div>
+              <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3">
+                {% for item in items %}
+                  <div class="image-item col" data-image-name="{{ item.filename|lower }}">
+                    <article class="card h-100 shadow-sm">
+                      <a href="{{ item.file_uri }}" target="_blank">
+                        <img class="card-img-top gallery-image bg-body-tertiary" src="data:image/jpeg;base64,{{ item.thumbnail }}" alt="Thumbnail of {{ item.filename }}" loading="lazy">
+                      </a>
+                      <div class="card-body d-flex align-items-start justify-content-between gap-2">
+                        <h3 class="card-title h6 mb-0 text-break">{{ item.filename }}</h3>
+                        <button class="btn btn-sm btn-success copy-path flex-shrink-0" type="button" data-path="{{ item.path }}" data-bs-toggle="tooltip" data-bs-title="Copy full path" aria-label="Copy full path">{{ copy_icon|safe }}<span class="visually-hidden">Copy full path</span></button>
+                      </div>
+                    </article>
+                  </div>
+                {% endfor %}
+              </div>
+            </section>
+          {% endfor %}
+        </main>
+      </div>
+    </div>
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="path-toast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">Path copied</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div id="toast-path" class="toast-body text-break"></div>
+      </div>
+    </div>
+
+    <script>{{ bootstrap_js|safe }}</script>
+    <script>
+      (() => {
+        const toastElement = document.getElementById("path-toast");
+        const toastPath = document.getElementById("toast-path");
+        const toast = bootstrap.Toast.getOrCreateInstance(toastElement);
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((element) => {
+          bootstrap.Tooltip.getOrCreateInstance(element);
+        });
+        const clusterLinks = [...document.querySelectorAll(".cluster-link")];
+        const imageItems = [...document.querySelectorAll(".image-item")];
+        const searchInput = document.getElementById("image-search");
+        const previousButton = document.getElementById("search-previous");
+        const nextButton = document.getElementById("search-next");
+        const searchPosition = document.getElementById("search-position");
+        let matches = [];
+        let matchIndex = -1;
+        const showMatch = (index) => {
+          imageItems.forEach((image) => image.classList.remove("search-current"));
+          matchIndex = matches.length ? (index + matches.length) % matches.length : -1;
+          searchPosition.textContent = matches.length ? `${matchIndex + 1} of ${matches.length}` : "0 of 0";
+          previousButton.disabled = !matches.length;
+          nextButton.disabled = !matches.length;
+          if (matchIndex >= 0) {
+            matches[matchIndex].classList.add("search-current");
+            matches[matchIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        };
+        searchInput.addEventListener("input", (event) => {
+          const query = event.target.value.trim().toLowerCase();
+          matches = query ? imageItems.filter((image) => image.dataset.imageName.includes(query)) : [];
+          imageItems.forEach((image) => {
+            image.classList.toggle("search-miss", Boolean(query) && !matches.includes(image));
+          });
+          showMatch(0);
+        });
+        previousButton.addEventListener("click", () => showMatch(matchIndex - 1));
+        nextButton.addEventListener("click", () => showMatch(matchIndex + 1));
+        clusterLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            clusterLinks.forEach((item) => {
+              item.classList.remove("active");
+              item.removeAttribute("aria-current");
+            });
+            link.classList.add("active");
+            link.setAttribute("aria-current", "true");
+          });
+        });
+        const copyText = async (text) => {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return;
+          }
+          const input = document.createElement("textarea");
+          input.value = text;
+          input.style.position = "fixed";
+          input.style.opacity = "0";
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand("copy");
+          input.remove();
+        };
+        document.querySelectorAll(".copy-path").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const path = button.dataset.path;
+            await copyText(path);
+            toastPath.textContent = path;
+            toast.show();
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
