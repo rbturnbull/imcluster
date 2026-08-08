@@ -1,8 +1,12 @@
-.. image:: docs/assets/imcluster-banner.png
+.. image:: https://raw.githubusercontent.com/rbturnbull/imcluster/master/docs/assets/imcluster-banner.png
    :alt: imcluster
    :align: center
 
-|pypi| |docs| |coverage badge| |tests|
+|pypi| |docs| |coverage| |tests|
+
+.. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg?color=blue
+   :alt: PyPI package version
+   :target: https://pypi.org/project/imcluster/
 
 .. |docs| image:: https://github.com/rbturnbull/imcluster/actions/workflows/docs.yml/badge.svg
    :alt: Documentation build status
@@ -12,14 +16,11 @@
    :alt: Test suite status
    :target: https://github.com/rbturnbull/imcluster/actions/workflows/tests.yml
 
-.. |pypi| image:: https://img.shields.io/pypi/v/imcluster.svg?color=blue
-   :alt: PyPI package version
-   :target: https://pypi.org/project/imcluster/
-
-.. |coverage badge| image:: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rbturnbull/74d271aef18559583efb89100748fe11/raw/coverage-badge.json
+.. |coverage| image:: https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rbturnbull/74d271aef18559583efb89100748fe11/raw/coverage-badge.json
     :alt: Coverage badge
     :target: https://rbturnbull.github.io/imcluster/coverage/
 
+.. start-quickstart
 
 ``imcluster`` clusters images using features from pretrained
 vision models. It produces a reusable cache and a self-contained HTML
@@ -32,12 +33,11 @@ weights are cached or accessible and otherwise falls back to `DINOv2
 clustering is the default, with DBSCAN available when the number of groups is
 not known.
 
-.. image:: docs/assets/gallery-screenshot.png
+.. image:: https://raw.githubusercontent.com/rbturnbull/imcluster/master/docs/assets/gallery-screenshot.png
    :alt: Example imcluster gallery showing clustered image cards and navigation
    :align: center
    :width: 100%
 
-.. start-quickstart
 
 Installation
 ============
@@ -185,6 +185,9 @@ a lighter run. The largest variants require substantial accelerator memory.
 
 Clustering
 ==========
+
+The available methods use `scikit-learn's clustering algorithms
+<https://scikit-learn.org/stable/modules/clustering.html>`_.
 
 Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
 count:
