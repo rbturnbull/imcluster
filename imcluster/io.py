@@ -49,6 +49,7 @@ class ImclusterIO:
     ) -> None:
         """Initialize an image collection and load any cached results."""
         self.output: Path = Path(output)
+        self.output.parent.mkdir(parents=True, exist_ok=True)
         self.images: list[Path]
         self.filenames: list[str]
         self.paths: list[str]

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 from rich.text import Text
 from typer.testing import CliRunner
@@ -373,6 +374,49 @@ def test_cli_uses_existing_cache_without_image_inputs(
     assert observed == [image.resolve() for image in images]
 
 
+def test_cache_only_run_restores_cached_model_without_source_images(
+    tmp_path, image_factory, monkeypatch
+):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    cache = tmp_path / "results.parquet"
+    expected = tmp_path / "expected.csv"
+    expected.write_text("filename,class\none.jpg,a\ntwo.jpg,b\n")
+    model_name = "facebook/dinov3-vits16-pretrain-lvd1689m"
+    store = ImclusterIO(images, cache)
+    store.df[model_name] = [[1.0, 0.0], [0.0, 1.0]]
+    store.df["spectral_cluster"] = [0, 1]
+    store.df["thumbnail"] = ["one-thumbnail", "two-thumbnail"]
+    store.df["model"] = model_name
+    store.df["algorithm"] = "spectral"
+    store.save()
+    for image in images:
+        image.unlink()
+    observed = []
+    monkeypatch.setattr(
+        "imcluster.main.resolve_model",
+        lambda *args, **kwargs: pytest.fail("cache-only run resolved a new model"),
+    )
+    monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.print_evaluation", lambda metrics: observed.append(metrics)
+    )
+
+    result = invoke_cli(
+        app,
+        [
+            "--cache",
+            str(cache),
+            "--expected",
+            str(expected),
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert observed == [{"NMI": 1.0, "ARI": 1.0, "ACC": 1.0}]
+    assert "Using cached model" in plain_output(result)
+
+
 def test_cli_requires_inputs_when_cache_does_not_exist(tmp_path):
     result = invoke_cli(
         app,
@@ -381,3 +425,116 @@ def test_cli_requires_inputs_when_cache_does_not_exist(tmp_path):
 
     assert result.exit_code == 2
     assert "Provide image inputs or an existing --cache file" in plain_output(result)
+
+
+def test_cli_evaluates_expected_classes(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    expected = tmp_path / "expected.csv"
+    expected.write_text("filename,class\none.jpg,a\ntwo.jpg,b\n")
+    observed = []
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+
+    def fake_cluster(store, *args, **kwargs):
+        store.df["spectral_cluster"] = [0, 1]
+
+    monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.print_evaluation", lambda metrics: observed.append(metrics)
+    )
+
+    result = invoke_cli(
+        app,
+        [
+            *(str(image) for image in images),
+            "--evaluate",
+            str(expected),
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert observed == [{"NMI": 1.0, "ARI": 1.0, "ACC": 1.0}]
+
+
+def test_cli_reports_invalid_expected_classes(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    expected = tmp_path / "expected.csv"
+    expected.write_text("filename,class\none.jpg,a\ntwo.jpg,b\n")
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.evaluate_clustering",
+        lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("bad labels")),
+    )
+
+    result = invoke_cli(
+        app,
+        [
+            *(str(image) for image in images),
+            "--expected",
+            str(expected),
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 2
+    output_text = plain_output(result)
+    assert "Invalid value for --evaluate" in output_text
+    assert "bad labels" in output_text
+
+
+def test_cli_writes_evaluation_metrics_csv(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    expected = tmp_path / "expected.csv"
+    expected.write_text("filename,class\none.jpg,a\ntwo.jpg,b\n")
+    metrics = tmp_path / "nested" / "metrics.csv"
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+
+    def fake_cluster(store, *args, **kwargs):
+        store.df["spectral_cluster"] = [4, 9]
+
+    monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
+
+    result = invoke_cli(
+        app,
+        [
+            *(str(image) for image in images),
+            "--evaluate",
+            str(expected),
+            "--metric",
+            str(metrics),
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert pd.read_csv(metrics).to_dict(orient="records") == [
+        {"NMI": 1.0, "ARI": 1.0, "ACC": 1.0}
+    ]
+    assert "Wrote evaluation metrics" in plain_output(result)
+
+
+def test_cli_rejects_metric_without_evaluate(tmp_path):
+    result = invoke_cli(
+        app,
+        ["--metric", str(tmp_path / "metrics.csv"), "--no-open"],
+    )
+
+    assert result.exit_code == 2
+    output_text = plain_output(result)
+    assert "Invalid value for --metric" in output_text
+    assert "--metric requires --evaluate" in output_text

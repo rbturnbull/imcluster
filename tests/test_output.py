@@ -228,6 +228,17 @@ def test_write_html_defaults_beside_parquet_output(tmp_path, image_factory):
     assert (tmp_path / "results.html").is_file()
 
 
+def test_write_html_creates_parent_directories(tmp_path, image_factory):
+    store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
+    store.df["spectral_cluster"] = [0]
+    store.df["thumbnail"] = ["encoded-thumbnail"]
+    output = tmp_path / "nested" / "gallery" / "clusters.html"
+
+    write_html(store, output)
+
+    assert output.is_file()
+
+
 def test_write_html_rejects_missing_cluster_column(tmp_path, image_factory):
     store = ImclusterIO([image_factory("one.jpg")], tmp_path / "results.parquet")
 

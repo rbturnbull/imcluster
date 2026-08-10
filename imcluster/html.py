@@ -65,6 +65,8 @@ def write_html(
 
     if not output_html:
         output_html = imcluster_io.output.with_suffix(".html")
+    output_html = Path(output_html)
+    output_html.parent.mkdir(parents=True, exist_ok=True)
 
     if cluster_column not in imcluster_io.df:
         raise ValueError(f"Missing clustering results column: {cluster_column}")

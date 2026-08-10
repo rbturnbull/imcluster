@@ -47,6 +47,14 @@ Main options
 ``--thumbnail-width INTEGER`` and ``--thumbnail-height INTEGER``
    Set the maximum embedded thumbnail dimensions.
 
+``--evaluate PATH`` (alias: ``--expected PATH``)
+   Evaluate clustering against a CSV with ``filename,class`` columns and print
+   Normalized Mutual Information (NMI), Adjusted Rand Index (ARI), and
+   optimally matched clustering accuracy (ACC).
+
+``--metric PATH``
+   Write NMI, ARI, and ACC scores to a CSV. Requires ``--evaluate``.
+
 Cache options
 =============
 

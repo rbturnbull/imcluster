@@ -112,6 +112,15 @@ def test_columns_are_saved_to_and_loaded_from_parquet(tmp_path, image_factory):
     assert loaded.get_all_columns() == ["path", "filenames", "score"]
 
 
+def test_cache_output_creates_parent_directories(tmp_path, image_factory):
+    output = tmp_path / "nested" / "cache" / "results.parquet"
+    store = ImclusterIO([image_factory("photo.jpg")], output)
+
+    store.save()
+
+    assert output.is_file()
+
+
 def test_existing_cache_restores_images_without_inputs(tmp_path, image_factory):
     images = [image_factory("one.jpg"), image_factory("two.jpg")]
     output = tmp_path / "results.parquet"

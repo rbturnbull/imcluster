@@ -209,6 +209,19 @@ HDBSCAN also discovers groups and noise while adapting to varying densities:
 
     imcluster photos/ --clustering hdbscan --min-samples 5
 
+To evaluate clusters against known classes, provide a CSV with ``filename`` and
+``class`` columns:
+
+.. code-block:: bash
+
+    imcluster photos/ --evaluate expected_classes.csv
+
+The class names only need to be consistent. The CLI reports Normalized Mutual
+Information (NMI), Adjusted Rand Index (ARI), and clustering accuracy (ACC)
+using an optimal mapping between cluster IDs and expected classes.
+
+Add ``--metric metrics.csv`` to save the three scores as a CSV file.
+
 Run ``imcluster --help`` for the complete command-line reference.
 
 .. end-quickstart

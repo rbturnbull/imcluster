@@ -37,3 +37,33 @@ Clustering
 Spectral, K-means, agglomerative, and hierarchical clustering use
 ``--n-clusters``. DBSCAN uses ``--dbscan-eps``; DBSCAN and HDBSCAN share
 ``--min-samples`` and report outliers as noise.
+
+Evaluation
+==========
+
+Evaluate cluster assignments against expected classes with a CSV containing
+``filename`` and ``class`` columns:
+
+.. code-block:: text
+
+   filename,class
+   airplane-01.jpg,airplane
+   airplane-02.jpg,airplane
+   forest-01.jpg,forest
+
+Then pass it to the CLI:
+
+.. code-block:: bash
+
+   imcluster photos/ --evaluate expected_classes.csv
+
+The class values may be any consistent names. imcluster reports Normalized
+Mutual Information (NMI), Adjusted Rand Index (ARI), and clustering accuracy
+(ACC). ACC optimally matches numeric cluster IDs to expected classes, so the
+specific cluster numbers do not affect the score.
+
+Save the scores as a one-row CSV with ``NMI``, ``ARI``, and ``ACC`` columns:
+
+.. code-block:: bash
+
+   imcluster photos/ --evaluate expected_classes.csv --metric metrics.csv

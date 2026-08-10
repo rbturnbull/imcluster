@@ -9,6 +9,7 @@ import typer
 from rich.console import Console
 
 from .cluster import ClusteringAlgorithm, cluster
+from .evaluate import evaluate_clustering, print_evaluation, write_evaluation
 from .features import (
     Device,
     DinoVersion,
@@ -103,6 +104,21 @@ def main(
         int,
         typer.Option(min=1, help="Minimum sample count for density clustering."),
     ] = 2,
+    evaluate: Annotated[
+        Path | None,
+        typer.Option(
+            "--evaluate",
+            "--expected",
+            exists=True,
+            dir_okay=False,
+            readable=True,
+            help="CSV containing filename,class labels for clustering evaluation.",
+        ),
+    ] = None,
+    metric: Annotated[
+        Path | None,
+        typer.Option(help="Write NMI, ARI, and ACC evaluation scores to this CSV."),
+    ] = None,
     thumbnail_width: Annotated[
         int,
         typer.Option(min=1, help="Maximum thumbnail width in pixels."),
@@ -133,10 +149,11 @@ def main(
     ] = False,
 ) -> None:
     """Cluster images and open an HTML gallery."""
-    try:
-        model_name = resolve_model(model, dino_version, arch, size)
-    except ValueError as error:
-        raise typer.BadParameter(str(error), param_hint="--size") from error
+    if metric is not None and evaluate is None:
+        raise typer.BadParameter(
+            "--metric requires --evaluate expected_classes.csv",
+            param_hint="--metric",
+        )
 
     temporary_directory: Path | None = None
     if cache is None:
@@ -161,6 +178,33 @@ def main(
         )
     except ValueError as error:
         raise typer.BadParameter(str(error), param_hint="--cache") from error
+    cached_model_names = (
+        {
+            value
+            for value in imcluster_io.df["model"].tolist()
+            if isinstance(value, str) and value
+        }
+        if not inputs and model is None and imcluster_io.has_column("model")
+        else set()
+    )
+    cached_model_name = next(iter(cached_model_names), None)
+    if (
+        len(cached_model_names) == 1
+        and cached_model_name is not None
+        and imcluster_io.has_column(cached_model_name)
+        and not force_features
+    ):
+        model_name = cached_model_name
+        console.print(
+            f"[green]Using cached model:[/green] restored '{model_name}' from "
+            f"'{imcluster_io.output}'."
+        )
+    else:
+        try:
+            model_name = resolve_model(model, dino_version, arch, size)
+        except ValueError as error:
+            raise typer.BadParameter(str(error), param_hint="--size") from error
+
     if not imcluster_io.images:
         raise typer.BadParameter(
             "No valid input images were found. Provide image inputs or an existing "
@@ -171,6 +215,7 @@ def main(
         raise typer.BadParameter(
             "At least two images are required", param_hint="inputs"
         )
+
     console.print(
         f"[bold]Processing {len(imcluster_io.images)} images[/bold] with model "
         f"'{model_name}' and {clustering.value} clustering."
@@ -195,6 +240,21 @@ def main(
     imcluster_io.df["model"] = model_name
     imcluster_io.df["algorithm"] = clustering.value
     imcluster_io.save()
+    if evaluate is not None:
+        try:
+            metrics = evaluate_clustering(
+                imcluster_io,
+                evaluate,
+                cluster_column=f"{clustering.value}_cluster",
+            )
+        except ValueError as error:
+            raise typer.BadParameter(str(error), param_hint="--evaluate") from error
+        print_evaluation(metrics)
+        if metric is not None:
+            write_evaluation(metrics, metric)
+            console.print(
+                f"[green]Wrote evaluation metrics:[/green] {metric.resolve()}"
+            )
     generate_thumbnails(
         imcluster_io,
         thumbnail_height=thumbnail_height,
