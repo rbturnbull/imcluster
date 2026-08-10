@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from imcluster.html import representative_indices, write_html
+from imcluster.html import representative_indices, similar_indices, write_html
 from imcluster.io import ImclusterIO
 from imcluster.thumbnails import generate_thumbnail, generate_thumbnails
 
@@ -81,6 +81,31 @@ def test_representative_indices_require_one_vector_per_label():
         representative_indices([0, 1], [[1.0, 0.0]])
 
 
+def test_similar_indices_rank_cosine_neighbours():
+    features = np.array([[1.0, 0.0], [0.9, 0.1], [0.0, 1.0], [-1.0, 0.0]])
+
+    neighbours = similar_indices(features, limit=2)
+
+    assert neighbours == {0: [1, 2], 1: [0, 2], 2: [1, 0], 3: [2, 1]}
+
+
+def test_similar_indices_defaults_to_thirty_neighbours():
+    features = np.eye(32)
+
+    neighbours = similar_indices(features)
+
+    assert len(neighbours[0]) == 30
+
+
+@pytest.mark.parametrize(
+    ("features", "limit", "message"),
+    [([1.0, 2.0], 1, "two-dimensional"), ([[1.0, 2.0]], -1, "negative")],
+)
+def test_similar_indices_reject_invalid_arguments(features, limit, message):
+    with pytest.raises(ValueError, match=message):
+        similar_indices(features, limit=limit)
+
+
 def test_write_html_uses_cluster_medoid_in_contents(tmp_path, image_factory):
     images = [image_factory(f"{index}.jpg") for index in range(3)]
     store = ImclusterIO(images, tmp_path / "results.parquet")
@@ -97,8 +122,9 @@ def test_write_html_uses_cluster_medoid_in_contents(tmp_path, image_factory):
     rendered = output.read_text()
     assert (
         'class="sidebar-thumbnail flex-shrink-0" '
-        'src="data:image/jpeg;base64,representative"' in rendered
+        'data-representative-position="1"' in rendered
     )
+    assert rendered.count("data:image/jpeg;base64,representative") == 1
 
 
 def test_write_html_groups_images_by_cluster_and_escapes_filenames(
@@ -159,6 +185,10 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert 'id="search-position"' in rendered
     assert 'image.classList.toggle("search-miss"' in rendered
     assert "scrollIntoView" in rendered
+    assert 'window.addEventListener("scroll", scheduleActiveClusterUpdate' in rendered
+    assert 'previousElement?.matches(".cluster-divider")' in rendered
+    assert "trigger.getBoundingClientRect().top <= threshold" in rendered
+    assert "setActiveCluster(currentSection.id, true)" in rendered
     assert "`${matchIndex + 1} of ${matches.length}`" in rendered
     assert "Sidebar colour" not in rendered
     assert "imcluster-sidebar-theme" not in rendered
@@ -192,7 +222,7 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert 'class="path"' not in rendered
     assert "border-bottom pb-2" not in rendered
     assert 'href="https://github.com/rbturnbull/imcluster"' in rendered
-    assert f'href="{image.resolve().as_uri()}"' in rendered
+    assert f'data-file-uri="{image.resolve().as_uri()}"' in rendered
     assert 'target="_blank"' in rendered
     assert (
         'href="https://huggingface.co/'
@@ -200,6 +230,34 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     )
     assert 'href="https://scikit-learn.org/stable/modules/clustering.html"' in rendered
     assert "cdn.jsdelivr.net" not in rendered
+    assert 'id="image-modal" class="modal fade"' in rendered
+    assert 'id="modal-selected-image"' in rendered
+    assert 'id="modal-similar-image"' in rendered
+    assert 'id="modal-similar-select"' in rendered
+    assert 'id="similar-thumbnail-strip"' in rendered
+    assert "buildSimilarThumbnail" in rendered
+    assert "renderSimilarImage" in rendered
+    assert "selectModalImage" in rendered
+    assert 'similarSelect.addEventListener("click"' in rendered
+    assert 'button.classList.toggle("active", active)' in rendered
+    assert "image.src = sourceItem.dataset.fileUri" in rendered
+    assert "image.src = sourceImage.src" in rendered
+    assert "thumbnailStrip.replaceChildren" in rendered
+    assert rendered.count("data:image/jpeg;base64,encoded-thumbnail") == 1
+
+
+def test_write_html_balances_spacing_around_cluster_dividers(tmp_path, image_factory):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    store = ImclusterIO(images, tmp_path / "results.parquet")
+    store.df["spectral_cluster"] = [0, 1]
+    store.df["thumbnail"] = ["first-thumbnail", "second-thumbnail"]
+    output = tmp_path / "clusters.html"
+
+    write_html(store, output)
+
+    rendered = output.read_text()
+    assert rendered.count('class="cluster-divider mt-3 mb-4"') == 1
+    assert rendered.count('class="cluster-section mb-0"') == 2
 
 
 def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):

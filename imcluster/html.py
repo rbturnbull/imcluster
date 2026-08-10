@@ -1,6 +1,7 @@
 """HTML cluster-gallery generation."""
 
 import base64
+import json
 from collections import defaultdict
 from collections.abc import Mapping
 from datetime import datetime, timezone
@@ -34,6 +35,39 @@ def representative_indices(
         similarity_totals = cluster_vectors @ cluster_vectors.sum(axis=0)
         representatives[label] = int(positions[np.argmax(similarity_totals)])
     return representatives
+
+
+def similar_indices(
+    feature_vectors: ArrayLike,
+    limit: int = 30,
+) -> dict[int, list[int]]:
+    """Return nearest image positions ranked by cosine similarity.
+
+    Args:
+        feature_vectors: Feature matrix containing one row per image.
+        limit: Maximum number of neighbours returned for each image.
+
+    Returns:
+        Mapping from each image position to its most similar image positions.
+
+    Raises:
+        ValueError: If vectors are not a matrix or ``limit`` is negative.
+    """
+    vectors = np.asarray(feature_vectors, dtype=float)
+    if vectors.ndim != 2:
+        raise ValueError("feature_vectors must be a two-dimensional matrix")
+    if limit < 0:
+        raise ValueError("limit must not be negative")
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    normalized = np.divide(vectors, norms, out=np.zeros_like(vectors), where=norms != 0)
+    result: dict[int, list[int]] = {}
+    for position, vector in enumerate(normalized):
+        scores = normalized @ vector
+        ranked = np.argsort(-scores, kind="stable")
+        result[position] = [
+            int(neighbour) for neighbour in ranked if neighbour != position
+        ][:limit]
+    return result
 
 
 def write_html(
@@ -98,16 +132,16 @@ def write_html(
             }
         )
 
+    similar_images: dict[int, list[int]]
     if feature_vectors is None:
-        representatives = {key: items[0]["thumbnail"] for key, items in data.items()}
+        representatives = {key: items[0]["position"] for key, items in data.items()}
+        similar_images = {position: [] for position in range(len(imcluster_io.df))}
     else:
         medoids = representative_indices(
             imcluster_io.df[cluster_column].to_numpy(), feature_vectors
         )
-        representatives = {
-            key: imcluster_io.df.iloc[position]["thumbnail"]
-            for key, position in medoids.items()
-        }
+        representatives = medoids
+        similar_images = similar_indices(feature_vectors)
 
     report_metadata = dict(metadata or {})
     report_metadata["Generated"] = datetime.now(timezone.utc).strftime(
@@ -139,6 +173,7 @@ def write_html(
         search_icon=search_icon,
         previous_icon=previous_icon,
         next_icon=next_icon,
+        similar_images_json=json.dumps(similar_images),
     )
 
     with open(output_html, "w", encoding="utf-8") as f:
