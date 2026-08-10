@@ -29,9 +29,9 @@ gallery organized by cluster.
 By default, ``imcluster`` uses `DINOv3
 <https://huggingface.co/docs/transformers/en/model_doc/dinov3>`_ when its
 weights are cached or accessible and otherwise falls back to `DINOv2
-<https://huggingface.co/docs/transformers/en/model_doc/dinov2>`_. Spectral
-clustering is the default, with DBSCAN available when the number of groups is
-not known.
+<https://huggingface.co/docs/transformers/en/model_doc/dinov2>`_. UMAP and
+K-means are the default reduction and clustering methods, with density-based
+methods available when the number of groups is not known.
 
 .. image:: https://raw.githubusercontent.com/rbturnbull/imcluster/master/docs/assets/gallery-screenshot.png
    :alt: Example imcluster gallery showing clustered image cards and navigation
@@ -230,6 +230,28 @@ Add ``--metric metrics.csv`` to save the three scores as a CSV file.
 Run ``imcluster --help`` for the complete command-line reference.
 
 .. end-quickstart
+
+Explore similar images
+======================
+
+The gallery can compare every image with its nearest visual neighbours. Click
+an image card to open the comparison modal: the selected image stays on the
+left while the 30 most similar images, ranked using cosine similarity between
+the original model feature vectors, are available on the right. Use the
+thumbnail strip or arrow buttons to move through the matches.
+
+Click the image on the right to promote it to the selected image. The modal
+then updates with that image's nearest neighbours, making it easy to explore
+related groups without closing the comparison view.
+
+.. image:: https://raw.githubusercontent.com/rbturnbull/imcluster/master/docs/assets/gallery-similar-items.png
+   :alt: imcluster gallery modal comparing a selected image with similar items
+   :align: center
+   :width: 100%
+
+The modal loads full-resolution originals from their file paths when they are
+available and otherwise falls back to the embedded thumbnails. Each thumbnail
+is embedded only once in the standalone report and reused by JavaScript.
 
 Limitations
 ===========

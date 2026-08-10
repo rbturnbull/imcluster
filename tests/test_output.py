@@ -170,6 +170,13 @@ def test_write_html_groups_images_by_cluster_and_escapes_filenames(
     assert ">1 clusters</h2>" in rendered
     assert 'placeholder="Search images..."' in rendered
     assert 'class="gallery-search input-group me-3 me-lg-4"' in rendered
+    assert (
+        'class="similarity-notice alert d-flex align-items-center '
+        'justify-content-center gap-2 border-0 shadow-sm w-50 mx-auto py-1 px-2" '
+        'role="note"' in rendered
+    )
+    assert ".similarity-notice { background-color: #5C6BA4; color: #fff;" in rendered
+    assert "Click images to explore" in rendered
     assert 'class="bi bi-search"' in rendered
     assert 'class="cluster-count badge rounded-pill">1</span>' in rendered
     assert (

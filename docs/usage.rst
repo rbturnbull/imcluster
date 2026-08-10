@@ -16,6 +16,28 @@ The gallery opens in the default browser. Use ``--no-open`` to suppress this,
 ``--gallery PATH`` to preserve the HTML report, and ``--cache PATH`` to retain
 the processing cache. Without those paths, temporary outputs are used.
 
+Explore similar images
+======================
+
+Click any image card in the gallery to open a comparison modal. The selected
+image remains on the left, while the right side shows one of its 30 nearest
+visual neighbours. These neighbours are ranked by cosine similarity between
+the original model feature vectors. The thumbnail strip and previous/next
+buttons move through the ranked matches.
+
+Click the similar image on the right to make it the new selected image. The
+modal rebuilds the comparison using that image's own nearest neighbours, so
+you can continue exploring without closing it.
+
+.. image:: assets/gallery-similar-items.png
+   :alt: Gallery modal comparing a selected image with similar items
+   :align: center
+   :width: 100%
+
+Full-resolution images are loaded from their original file paths. If a source
+file is unavailable, the modal uses its embedded thumbnail instead. Thumbnail
+data is embedded only once in the standalone HTML and reused with JavaScript.
+
 Caching
 =======
 

@@ -15,6 +15,7 @@
       .sidebar-heading, .cluster-heading { color: var(--imcluster-accent); font-family: inherit; font-weight: 700; }
       .gallery-search { max-width: 40rem; width: 100%; }
       .gallery-search .form-control { min-width: 10rem; }
+      .similarity-notice { background-color: #5C6BA4; color: #fff; font-size: .8rem; }
       .cluster-link { color: #18233f; position: relative; transition: background-color .15s ease, color .15s ease; }
       .cluster-link:hover { background: #f5f5fc; color: var(--imcluster-accent); }
       .cluster-link.active { background: #eef0ff; color: var(--imcluster-accent); }
@@ -107,6 +108,10 @@
         </aside>
 
         <main class="col p-3 p-lg-4">
+          <div class="similarity-notice alert d-flex align-items-center justify-content-center gap-2 border-0 shadow-sm w-50 mx-auto py-1 px-2" role="note">
+            <span class="d-flex flex-shrink-0" aria-hidden="true">{{ search_icon|safe }}</span>
+            <span>Click images to explore</span>
+          </div>
           {% for key, items in data.items() %}
             {% if not loop.first %}<hr class="cluster-divider mt-3 mb-4">{% endif %}
             <section id="cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}" class="cluster-section mb-0">
