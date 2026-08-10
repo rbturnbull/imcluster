@@ -26,6 +26,10 @@ def invoke_cli(app, args, **kwargs):
 def unavailable_dinov3(monkeypatch):
     """Avoid network access and exercise the default automatic fallback."""
     monkeypatch.setattr("imcluster.features.dinov3_available", lambda model: False)
+    monkeypatch.setattr(
+        "imcluster.main.reduce_dimensions",
+        lambda store, vectors, **kwargs: vectors,
+    )
 
 
 def test_cli_help_is_available():
@@ -46,6 +50,8 @@ def test_cli_help_is_available():
     assert "--dino-version" in help_text
     assert "--size" in help_text
     assert "--model" in help_text
+    assert "--reduction-dims" in help_text
+    assert "--reduction-dims" in help_text
 
 
 def test_open_gallery_uses_file_uri(tmp_path, monkeypatch):
@@ -67,8 +73,17 @@ def test_cli_auto_falls_back_to_dinov2_base(tmp_path, image_factory, monkeypatch
         observed["model_name"] = kwargs["model_name"]
         return [[1.0], [2.0]]
 
+    def fake_reduce(store, vectors, **kwargs):
+        observed["reduction"] = kwargs["method"].value
+        observed["reduction_dims"] = kwargs["dimensions"]
+        return vectors
+
+    def fake_cluster(*args, **kwargs):
+        observed["clustering"] = kwargs["algorithm"].value
+
     monkeypatch.setattr("imcluster.main.build_features", fake_build_features)
-    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr("imcluster.main.reduce_dimensions", fake_reduce)
+    monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
     monkeypatch.setattr(
         "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
     )
@@ -80,7 +95,12 @@ def test_cli_auto_falls_back_to_dinov2_base(tmp_path, image_factory, monkeypatch
     )
 
     assert result.exit_code == 0
-    assert observed["model_name"] == "facebook/dinov2-base"
+    assert observed == {
+        "model_name": "facebook/dinov2-base",
+        "reduction": "umap",
+        "reduction_dims": 50,
+        "clustering": "kmeans",
+    }
 
 
 def test_cli_custom_model_overrides_arch_and_size(tmp_path, image_factory, monkeypatch):
@@ -239,9 +259,57 @@ def test_cli_wires_requested_output_and_algorithm(tmp_path, image_factory, monke
         "metadata": {
             "Model": "facebook/dinov2-base",
             "Clustering": "dbscan",
+            "Reduction": "umap",
+            "Reduction dimensions": "50",
             "Images": "2",
         },
         "feature_vectors": [[1.0], [2.0]],
+    }
+
+
+def test_cli_reduces_features_and_invalidates_cached_clusters(
+    tmp_path, image_factory, monkeypatch
+):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    observed = {}
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+
+    def fake_reduce(*args, **kwargs):
+        observed["dimensions"] = kwargs["dimensions"]
+        return [[9.0], [8.0]]
+
+    monkeypatch.setattr("imcluster.main.reduce_dimensions", fake_reduce)
+
+    def fake_cluster(store, vectors, **kwargs):
+        observed["vectors"] = vectors
+        observed["force"] = kwargs["force"]
+        store.df["spectral_cluster"] = [0, 1]
+
+    monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
+
+    result = invoke_cli(
+        app,
+        [
+            *(str(image) for image in images),
+            "--reduce",
+            "pca",
+            "--reduction-dims",
+            "12",
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert observed == {
+        "dimensions": 12,
+        "vectors": [[9.0], [8.0]],
+        "force": True,
     }
 
 
@@ -408,6 +476,10 @@ def test_cache_only_run_restores_cached_model_without_source_images(
             str(cache),
             "--expected",
             str(expected),
+            "--clustering",
+            "spectral",
+            "--reduce",
+            "none",
             "--no-open",
         ],
     )
@@ -437,7 +509,7 @@ def test_cli_evaluates_expected_classes(tmp_path, image_factory, monkeypatch):
     )
 
     def fake_cluster(store, *args, **kwargs):
-        store.df["spectral_cluster"] = [0, 1]
+        store.df["kmeans_cluster"] = [0, 1]
 
     monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
     monkeypatch.setattr(
@@ -501,7 +573,7 @@ def test_cli_writes_evaluation_metrics_csv(tmp_path, image_factory, monkeypatch)
     )
 
     def fake_cluster(store, *args, **kwargs):
-        store.df["spectral_cluster"] = [4, 9]
+        store.df["kmeans_cluster"] = [4, 9]
 
     monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
     monkeypatch.setattr(

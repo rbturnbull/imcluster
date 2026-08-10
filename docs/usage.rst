@@ -34,9 +34,34 @@ original inputs:
 Clustering
 ==========
 
-Spectral, K-means, agglomerative, and hierarchical clustering use
-``--n-clusters``. DBSCAN uses ``--dbscan-eps``; DBSCAN and HDBSCAN share
-``--min-samples`` and report outliers as noise.
+K-means is the default clustering method. Spectral, K-means, agglomerative,
+and hierarchical clustering use ``--n-clusters``. DBSCAN uses
+``--dbscan-eps``; DBSCAN and HDBSCAN share ``--min-samples`` and report
+outliers as noise.
+
+Dimensionality reduction
+========================
+
+By default, UMAP reduces the DINO feature vectors before clustering. PCA and
+t-SNE can be selected instead, or reduction can be disabled:
+
+.. code-block:: bash
+
+   imcluster photos/ --reduce umap
+   imcluster photos/ --reduce tsne
+   imcluster photos/ --reduce pca
+   imcluster photos/ --reduce none
+
+Use ``--reduction-dims`` to change the default target of 50 dimensions:
+
+.. code-block:: bash
+
+   imcluster photos/ --reduce umap --reduction-dims 25
+
+PCA and t-SNE use scikit-learn. UMAP uses umap-learn. The reduced vectors are
+cached, and changing the reduction method or requested dimensions recomputes
+cluster assignments. UMAP requires at least three images. t-SNE is capped at
+three output dimensions.
 
 Evaluation
 ==========

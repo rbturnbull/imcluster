@@ -43,6 +43,15 @@ Main options
 ``--clustering [spectral|dbscan|hdbscan|kmeans|agglomerative|hierarchical]``
    Select clustering behavior. Fixed-count methods use ``--n-clusters``;
    DBSCAN uses ``--dbscan-eps``. DBSCAN and HDBSCAN share ``--min-samples``.
+   The default is ``kmeans``.
+
+``--reduce [none|umap|tsne|pca]``
+   Optionally reduce DINO feature dimensions before clustering. Reduced vectors
+   are cached. The default is ``umap``; use ``--reduce none`` to disable it.
+
+``--reduction-dims INTEGER``
+   Set the requested output dimensionality for PCA and UMAP. The default is
+   ``50``. t-SNE is capped at three dimensions.
 
 ``--thumbnail-width INTEGER`` and ``--thumbnail-height INTEGER``
    Set the maximum embedded thumbnail dimensions.

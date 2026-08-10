@@ -20,6 +20,7 @@ from .features import (
 )
 from .html import write_html
 from .io import ImclusterIO
+from .reduction import ReductionMethod, reduce_dimensions
 from .thumbnails import generate_thumbnails
 
 console = Console()
@@ -91,7 +92,15 @@ def main(
     clustering: Annotated[
         ClusteringAlgorithm,
         typer.Option(help="Clustering algorithm to use."),
-    ] = ClusteringAlgorithm.SPECTRAL,
+    ] = ClusteringAlgorithm.KMEANS,
+    reduce: Annotated[
+        ReductionMethod,
+        typer.Option(help="Dimensionality reduction applied before clustering."),
+    ] = ReductionMethod.UMAP,
+    reduction_dims: Annotated[
+        int,
+        typer.Option(min=1, help="Target number of dimensions after reduction."),
+    ] = 50,
     n_clusters: Annotated[
         int,
         typer.Option(min=2, help="Number of clusters for fixed-count methods."),
@@ -228,17 +237,51 @@ def main(
         batch_size=batch_size,
         force=force or force_features,
     )
-    cluster(
+    clustering_vectors = reduce_dimensions(
         imcluster_io,
         feature_vectors,
+        method=reduce,
+        dimensions=reduction_dims,
+        force=force or force_features,
+    )
+    previous_reductions = (
+        {
+            value
+            for value in imcluster_io.df["reduction"].tolist()
+            if isinstance(value, str) and value
+        }
+        if imcluster_io.has_column("reduction")
+        else {ReductionMethod.NONE.value}
+    )
+    reduction_changed = previous_reductions != {reduce.value}
+    previous_reduction_dims = (
+        set(imcluster_io.df["reduction_dims"].dropna().astype(int).tolist())
+        if imcluster_io.has_column("reduction_dims")
+        else set()
+    )
+    reduction_dims_changed = (
+        reduce is not ReductionMethod.NONE
+        and previous_reduction_dims != {reduction_dims}
+    )
+    cluster(
+        imcluster_io,
+        clustering_vectors,
         algorithm=clustering,
         n_clusters=n_clusters,
         dbscan_eps=dbscan_eps,
         min_samples=min_samples,
-        force=force or force_features or force_cluster,
+        force=(
+            force
+            or force_features
+            or force_cluster
+            or reduction_changed
+            or reduction_dims_changed
+        ),
     )
     imcluster_io.df["model"] = model_name
     imcluster_io.df["algorithm"] = clustering.value
+    imcluster_io.df["reduction"] = reduce.value
+    imcluster_io.df["reduction_dims"] = reduction_dims
     imcluster_io.save()
     if evaluate is not None:
         try:
@@ -270,6 +313,8 @@ def main(
             metadata={
                 "Model": model_name,
                 "Clustering": clustering.value,
+                "Reduction": reduce.value,
+                "Reduction dimensions": str(reduction_dims),
                 "Images": str(len(imcluster_io.images)),
             },
             feature_vectors=feature_vectors,

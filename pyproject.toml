@@ -25,6 +25,7 @@ classifiers = [
 dependencies = [
     "jinja2>=3.1",
     "huggingface-hub>=0.34,<2",
+    "numba>=0.61",
     "numpy>=1.23",
     "pandas>=1.5",
     "pillow>=10",
@@ -36,6 +37,7 @@ dependencies = [
     "torchvision>=0.17",
     "transformers>=4.56,<5",
     "typer>=0.12",
+    "umap-learn>=0.5",
 ]
 
 [project.urls]

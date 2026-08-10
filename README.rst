@@ -189,6 +189,11 @@ Clustering
 The available methods use `scikit-learn's clustering algorithms
 <https://scikit-learn.org/stable/modules/clustering.html>`_.
 
+By default, UMAP reduces the DINO vectors and K-means clusters the result. Use
+``--reduce tsne`` or ``--reduce pca`` to select another reduction method, or
+``--reduce none`` to cluster the original vectors. ``--reduction-dims`` sets
+the PCA or UMAP target and defaults to 50. Reduced vectors are cached.
+
 Spectral, K-means, agglomerative, and hierarchical clustering use a cluster
 count:
 
