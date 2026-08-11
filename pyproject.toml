@@ -1,6 +1,6 @@
 [project]
 name = "imcluster"
-version = "0.4.0"
+version = "0.4.5"
 description = "Cluster and explore image collections with an interactive gallery."
 readme = "README.rst"
 requires-python = ">=3.10,<3.14"
