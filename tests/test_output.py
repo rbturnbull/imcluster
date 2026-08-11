@@ -267,6 +267,39 @@ def test_write_html_balances_spacing_around_cluster_dividers(tmp_path, image_fac
     assert rendered.count('class="cluster-section mb-0"') == 2
 
 
+def test_write_html_displays_cached_cluster_names(tmp_path, image_factory):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    store = ImclusterIO(images, tmp_path / "results.parquet")
+    store.df["kmeans_cluster"] = [0, 1]
+    store.df["kmeans_cluster_name"] = ["Coastal Birds", "Forest Animals"]
+    store.df["thumbnail"] = ["first-thumbnail", "second-thumbnail"]
+    output = tmp_path / "clusters.html"
+
+    write_html(store, output, cluster_column="kmeans_cluster")
+
+    rendered = output.read_text()
+    assert rendered.count("Coastal Birds") == 3
+    assert rendered.count("Forest Animals") == 3
+    assert 'href="#cluster-1"' in rendered
+    assert 'href="#cluster-2"' in rendered
+
+
+def test_write_html_supports_text_cluster_labels(tmp_path, image_factory):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    store = ImclusterIO(images, tmp_path / "results.parquet")
+    store.df["category_cluster"] = ["Birds", "Trees"]
+    store.df["thumbnail"] = ["first-thumbnail", "second-thumbnail"]
+    output = tmp_path / "clusters.html"
+
+    write_html(store, output, cluster_column="category_cluster")
+
+    rendered = output.read_text()
+    assert ">Birds</" in rendered
+    assert ">Trees</" in rendered
+    assert 'id="cluster-1"' in rendered
+    assert 'id="cluster-2"' in rendered
+
+
 def test_write_html_supports_dbscan_clusters(tmp_path, image_factory):
     store = ImclusterIO(
         [image_factory("one.jpg"), image_factory("two.jpg")],

@@ -1,7 +1,7 @@
 [project]
 name = "imcluster"
 version = "0.4.0"
-description = "Cluster images using features from pretrained vision models."
+description = "Cluster and explore image collections with an interactive gallery."
 readme = "README.rst"
 requires-python = ">=3.10,<3.14"
 license = "Apache-2.0"
@@ -38,6 +38,7 @@ dependencies = [
     "transformers>=4.56,<5",
     "typer>=0.12",
     "umap-learn>=0.5",
+    "llmloader (>=0.1.9,<0.2.0)",
 ]
 
 [project.urls]
@@ -59,6 +60,9 @@ sphinx = ">=7"
 sphinx-rtd-theme = ">=2"
 sphinxcontrib-bibtex = ">=2.6"
 twine = ">=5"
+
+[tool.poetry]
+exclude = ["imcluster/llm-bk.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

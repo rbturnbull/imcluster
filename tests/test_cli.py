@@ -51,6 +51,10 @@ def test_cli_help_is_available():
     assert "--size" in help_text
     assert "--model" in help_text
     assert "--reduction-dims" in help_text
+    assert "--name" in help_text
+    assert "--llm" in help_text
+    assert "--llm-temperature" in help_text
+    assert "--llm-api-key" in help_text
     assert "--reduction-dims" in help_text
 
 
@@ -311,6 +315,84 @@ def test_cli_reduces_features_and_invalidates_cached_clusters(
         "vectors": [[9.0], [8.0]],
         "force": True,
     }
+
+
+def test_cli_names_clusters_with_configured_llm(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    features = [[1.0, 0.0], [0.0, 1.0]]
+    observed = {}
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: features
+    )
+
+    def fake_cluster(store, *args, **kwargs):
+        store.df["kmeans_cluster"] = [0, 1]
+        store.df["kmeans_cluster_name"] = ["Stale", "Stale"]
+
+    def fake_thumbnails(store, **kwargs):
+        store.df["thumbnail"] = ["one-thumbnail", "two-thumbnail"]
+
+    def fake_name_clusters(store, vectors, **kwargs):
+        assert not store.has_column("kmeans_cluster_name")
+        observed["vectors"] = vectors
+        observed.update(kwargs)
+        store.df["kmeans_cluster_name"] = ["Birds", "Trees"]
+
+    monkeypatch.setattr("imcluster.main.cluster", fake_cluster)
+    monkeypatch.setattr("imcluster.main.generate_thumbnails", fake_thumbnails)
+    monkeypatch.setattr("imcluster.main.name_clusters", fake_name_clusters)
+    monkeypatch.setattr("imcluster.main.write_html", lambda *args, **kwargs: None)
+
+    result = invoke_cli(
+        app,
+        [
+            *(str(image) for image in images),
+            "--name",
+            "--llm",
+            "provider/model",
+            "--llm-temperature",
+            "0.4",
+            "--llm-api-key",
+            "secret",
+            "--n-clusters",
+            "2",
+            "--no-open",
+        ],
+    )
+
+    assert result.exit_code == 0, result.exception
+    assert observed == {
+        "vectors": features,
+        "cluster_column": "kmeans_cluster",
+        "llm": "provider/model",
+        "temperature": 0.4,
+        "api_key": "secret",
+        "force": True,
+    }
+
+
+def test_cli_reports_cluster_naming_errors(tmp_path, image_factory, monkeypatch):
+    images = [image_factory("one.jpg"), image_factory("two.jpg")]
+    monkeypatch.setattr(
+        "imcluster.main.build_features", lambda *args, **kwargs: [[1.0], [2.0]]
+    )
+    monkeypatch.setattr("imcluster.main.cluster", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        "imcluster.main.generate_thumbnails", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr(
+        "imcluster.main.name_clusters",
+        lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("bad LLM")),
+    )
+
+    result = invoke_cli(
+        app,
+        [*(str(image) for image in images), "--name", "--no-open"],
+    )
+
+    assert result.exit_code == 2
+    assert "Invalid value for --name" in plain_output(result)
+    assert "bad LLM" in plain_output(result)
 
 
 def test_cli_runs_local_pipeline_and_writes_requested_files(

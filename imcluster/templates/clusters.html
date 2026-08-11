@@ -76,9 +76,9 @@
             <div class="cluster-list-scroll flex-grow-1">
               <div id="cluster-list" class="d-flex flex-column gap-1">
                 {% for key, items in data.items() %}
-                  <a class="cluster-link d-flex align-items-center gap-2 rounded-3 px-2 py-2 text-decoration-none{% if loop.first %} active{% endif %}" href="#cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}"{% if loop.first %} aria-current="true"{% endif %}>
-                    <img class="sidebar-thumbnail flex-shrink-0" data-representative-position="{{ representatives[key] }}" alt="Representative image for {% if key == -1 %}noise{% else %}cluster {{ key + 1 }}{% endif %}">
-                    <span class="flex-grow-1 text-truncate">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</span>
+                  <a class="cluster-link d-flex align-items-center gap-2 rounded-3 px-2 py-2 text-decoration-none{% if loop.first %} active{% endif %}" href="#cluster-{{ cluster_ids[key] }}"{% if loop.first %} aria-current="true"{% endif %}>
+                    <img class="sidebar-thumbnail flex-shrink-0" data-representative-position="{{ representatives[key] }}" alt="Representative image for {{ cluster_titles[key] }}">
+                    <span class="flex-grow-1 text-truncate">{{ cluster_titles[key] }}</span>
                     <span class="cluster-count badge rounded-pill">{{ items|length }}</span>
                   </a>
                 {% endfor %}
@@ -114,9 +114,9 @@
           </div>
           {% for key, items in data.items() %}
             {% if not loop.first %}<hr class="cluster-divider mt-3 mb-4">{% endif %}
-            <section id="cluster-{% if key == -1 %}noise{% else %}{{ key + 1 }}{% endif %}" class="cluster-section mb-0">
+            <section id="cluster-{{ cluster_ids[key] }}" class="cluster-section mb-0">
               <div class="d-flex align-items-baseline gap-5 mb-3">
-                <h2 class="cluster-heading h3 mb-0">{% if key == -1 %}Noise{% else %}Cluster {{ key + 1 }}{% endif %}</h2>
+                <h2 class="cluster-heading h3 mb-0">{{ cluster_titles[key] }}</h2>
                 <span class="text-body-secondary fst-italic small">{{ items|length }} {% if items|length == 1 %}image{% else %}images{% endif %}</span>
               </div>
               <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xxl-4 g-3">

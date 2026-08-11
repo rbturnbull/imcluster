@@ -1,5 +1,6 @@
 [run]
 source = imcluster
+omit = imcluster/llm-bk.py
 
 [report]
 precision = 2

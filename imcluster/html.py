@@ -132,6 +132,27 @@ def write_html(
             }
         )
 
+    cluster_name_column = f"{cluster_column}_name"
+    cluster_titles: dict[object, str] = {}
+    cluster_ids: dict[object, str] = {}
+    for index, (cluster, items) in enumerate(data.items(), start=1):
+        if cluster == -1:
+            default_title = "Noise"
+            cluster_ids[cluster] = "noise"
+        elif isinstance(cluster, (int, np.integer)):
+            default_title = f"Cluster {int(cluster) + 1}"
+            cluster_ids[cluster] = str(int(cluster) + 1)
+        else:
+            default_title = str(cluster)
+            cluster_ids[cluster] = str(index)
+        cluster_title = default_title
+        if imcluster_io.has_column(cluster_name_column):
+            position = int(items[0]["position"])
+            cached_title = imcluster_io.df.iloc[position][cluster_name_column]
+            if isinstance(cached_title, str) and cached_title.strip():
+                cluster_title = cached_title.strip()
+        cluster_titles[cluster] = cluster_title
+
     similar_images: dict[int, list[int]]
     if feature_vectors is None:
         representatives = {key: items[0]["position"] for key, items in data.items()}
@@ -167,6 +188,8 @@ def write_html(
         header=header,
         favicon=favicon,
         representatives=representatives,
+        cluster_titles=cluster_titles,
+        cluster_ids=cluster_ids,
         bootstrap_css=bootstrap_css,
         bootstrap_js=bootstrap_js,
         copy_icon=copy_icon,

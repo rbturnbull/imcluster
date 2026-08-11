@@ -85,6 +85,35 @@ cached, and changing the reduction method or requested dimensions recomputes
 cluster assignments. UMAP requires at least three images. t-SNE is capped at
 three output dimensions.
 
+Cluster names
+=============
+
+Add ``--name`` to generate concise descriptive names with a multimodal LLM:
+
+.. code-block:: bash
+
+   export OPENAI_API_KEY=your-api-key
+   imcluster photos/ --name --llm gpt-5.6-luna
+
+For each cluster, imcluster chooses a cosine medoid and then diverse examples
+using farthest-first traversal. By default, no images from outside the cluster
+are sent and the prompt only describes the in-cluster examples. The Python API
+can request nearby outside images as contrasting examples by setting
+``out_group_size`` above zero. Only JPEG thumbnails already stored in the cache
+are sent to the LLM; source image files are not included in the prompt.
+
+Names are stored in an algorithm-specific cache column and appear in the
+gallery sidebar and headings. Numeric cluster assignments remain unchanged,
+so naming does not affect evaluation. Cached names are reused unless the
+clusters are recomputed or ``--force`` is supplied. Noise produced by DBSCAN or
+HDBSCAN retains the name ``Noise`` without making an LLM request.
+
+The default naming model is ``gpt-5.6-luna`` with temperature ``0.2``. Select a
+different llmloader-compatible multimodal model with ``--llm`` and adjust
+sampling with ``--llm-temperature``. ``--llm-api-key`` is available, but the
+provider's environment variable is preferable because command-line secrets can
+be retained in shell history and process listings.
+
 Evaluation
 ==========
 

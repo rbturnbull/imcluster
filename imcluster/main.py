@@ -20,6 +20,7 @@ from .features import (
 )
 from .html import write_html
 from .io import ImclusterIO
+from .llm import DEFAULT_LLM, name_clusters
 from .reduction import ReductionMethod, reduce_dimensions
 from .thumbnails import generate_thumbnails
 
@@ -113,6 +114,22 @@ def main(
         int,
         typer.Option(min=1, help="Minimum sample count for density clustering."),
     ] = 2,
+    name: Annotated[
+        bool,
+        typer.Option(help="Generate descriptive cluster names with a multimodal LLM."),
+    ] = False,
+    llm: Annotated[
+        str,
+        typer.Option(help="llmloader model identifier used to name clusters."),
+    ] = DEFAULT_LLM,
+    llm_temperature: Annotated[
+        float,
+        typer.Option(min=0.0, help="Sampling temperature used for cluster names."),
+    ] = 0.2,
+    llm_api_key: Annotated[
+        str | None,
+        typer.Option(help="Optional provider API key used by the naming LLM."),
+    ] = None,
     evaluate: Annotated[
         Path | None,
         typer.Option(
@@ -263,6 +280,17 @@ def main(
         reduce is not ReductionMethod.NONE
         and previous_reduction_dims != {reduction_dims}
     )
+    cluster_column = f"{clustering.value}_cluster"
+    cluster_force = (
+        force
+        or force_features
+        or force_cluster
+        or reduction_changed
+        or reduction_dims_changed
+    )
+    cluster_was_recomputed = cluster_force or not imcluster_io.has_column(
+        cluster_column
+    )
     cluster(
         imcluster_io,
         clustering_vectors,
@@ -270,14 +298,11 @@ def main(
         n_clusters=n_clusters,
         dbscan_eps=dbscan_eps,
         min_samples=min_samples,
-        force=(
-            force
-            or force_features
-            or force_cluster
-            or reduction_changed
-            or reduction_dims_changed
-        ),
+        force=cluster_force,
     )
+    cluster_name_column = f"{cluster_column}_name"
+    if cluster_was_recomputed and imcluster_io.has_column(cluster_name_column):
+        imcluster_io.df.drop(columns=[cluster_name_column], inplace=True)
     imcluster_io.df["model"] = model_name
     imcluster_io.df["algorithm"] = clustering.value
     imcluster_io.df["reduction"] = reduce.value
@@ -305,11 +330,24 @@ def main(
         force=force,
         force_thumbnails=force_thumbnails,
     )
+    if name:
+        try:
+            name_clusters(
+                imcluster_io,
+                feature_vectors,
+                cluster_column=cluster_column,
+                llm=llm,
+                temperature=llm_temperature,
+                api_key=llm_api_key,
+                force=force or cluster_was_recomputed,
+            )
+        except ValueError as error:
+            raise typer.BadParameter(str(error), param_hint="--name") from error
     with console.status("[cyan]Rendering HTML gallery...[/cyan]"):
         write_html(
             imcluster_io,
             output_html=output_html,
-            cluster_column=f"{clustering.value}_cluster",
+            cluster_column=cluster_column,
             metadata={
                 "Model": model_name,
                 "Clustering": clustering.value,

@@ -53,6 +53,18 @@ Main options
    Set the requested output dimensionality for PCA and UMAP. The default is
    ``50``. t-SNE is capped at three dimensions.
 
+``--name``
+   Generate and cache descriptive cluster names from representative cached
+   thumbnails using a multimodal LLM.
+
+``--llm TEXT`` and ``--llm-temperature FLOAT``
+   Select the llmloader-compatible naming model and its sampling temperature.
+   Defaults are ``gpt-5.6-luna`` and ``0.2``.
+
+``--llm-api-key TEXT``
+   Pass a provider API key for cluster naming. Prefer the provider's environment
+   variable to avoid exposing a secret in shell history or process listings.
+
 ``--thumbnail-width INTEGER`` and ``--thumbnail-height INTEGER``
    Set the maximum embedded thumbnail dimensions.
 

@@ -214,6 +214,21 @@ HDBSCAN also discovers groups and noise while adapting to varying densities:
 
     imcluster photos/ --clustering hdbscan --min-samples 5
 
+Name clusters with a multimodal language model:
+
+.. code-block:: bash
+
+    export OPENAI_API_KEY=your-api-key
+    imcluster photos/ --name --llm gpt-5.6-luna
+
+Cluster naming sends representative cached thumbnails—not the source image
+files—to the configured model. It does not send out-of-cluster examples by
+default. The generated names are stored in the cache and displayed in the
+gallery while the underlying numeric cluster IDs remain available for
+evaluation and reuse. ``--llm-temperature`` controls sampling;
+``--llm-api-key`` can pass a key directly, although a provider environment
+variable is safer than exposing a secret in shell history.
+
 To evaluate clusters against known classes, provide a CSV with ``filename`` and
 ``class`` columns:
 
