@@ -130,6 +130,20 @@ def main(
         str | None,
         typer.Option(help="Optional provider API key used by the naming LLM."),
     ] = None,
+    in_group_size: Annotated[
+        int,
+        typer.Option(
+            min=1,
+            help="Maximum in-cluster thumbnail examples sent to the naming LLM.",
+        ),
+    ] = 10,
+    out_group_size: Annotated[
+        int,
+        typer.Option(
+            min=0,
+            help="Maximum contrasting outside examples sent to the naming LLM.",
+        ),
+    ] = 0,
     evaluate: Annotated[
         Path | None,
         typer.Option(
@@ -339,6 +353,8 @@ def main(
                 llm=llm,
                 temperature=llm_temperature,
                 api_key=llm_api_key,
+                in_group_size=in_group_size,
+                out_group_size=out_group_size,
                 force=force or cluster_was_recomputed,
             )
         except ValueError as error:

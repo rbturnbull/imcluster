@@ -55,6 +55,8 @@ def test_cli_help_is_available():
     assert "--llm" in help_text
     assert "--llm-temperature" in help_text
     assert "--llm-api-key" in help_text
+    assert "--in-group-size" in help_text
+    assert "--out-group-size" in help_text
     assert "--reduction-dims" in help_text
 
 
@@ -354,6 +356,10 @@ def test_cli_names_clusters_with_configured_llm(tmp_path, image_factory, monkeyp
             "0.4",
             "--llm-api-key",
             "secret",
+            "--in-group-size",
+            "7",
+            "--out-group-size",
+            "3",
             "--n-clusters",
             "2",
             "--no-open",
@@ -367,6 +373,8 @@ def test_cli_names_clusters_with_configured_llm(tmp_path, image_factory, monkeyp
         "llm": "provider/model",
         "temperature": 0.4,
         "api_key": "secret",
+        "in_group_size": 7,
+        "out_group_size": 3,
         "force": True,
     }
 

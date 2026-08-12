@@ -31,7 +31,10 @@ def test_default_llm_is_defined_once_for_api_and_cli():
     assert DEFAULT_LLM
     assert inspect.signature(name_clusters).parameters["llm"].default == DEFAULT_LLM
     assert inspect.signature(main).parameters["llm"].default == DEFAULT_LLM
+    assert inspect.signature(name_clusters).parameters["in_group_size"].default == 10
     assert inspect.signature(name_clusters).parameters["out_group_size"].default == 0
+    assert inspect.signature(main).parameters["in_group_size"].default == 10
+    assert inspect.signature(main).parameters["out_group_size"].default == 0
 
 
 def make_cluster_store(tmp_path, image_factory):

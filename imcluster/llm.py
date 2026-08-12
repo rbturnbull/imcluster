@@ -148,7 +148,7 @@ def name_clusters(
     llm: Any = DEFAULT_LLM,
     temperature: float = 0.2,
     api_key: str | None = None,
-    in_group_size: int = 5,
+    in_group_size: int = 10,
     out_group_size: int = 0,
     force: bool = False,
 ) -> dict[object, str]:

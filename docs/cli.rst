@@ -65,6 +65,10 @@ Main options
    Pass a provider API key for cluster naming. Prefer the provider's environment
    variable to avoid exposing a secret in shell history or process listings.
 
+``--in-group-size INTEGER`` and ``--out-group-size INTEGER``
+   Set the maximum in-cluster and contrasting outside thumbnails sent to the
+   naming LLM. The defaults are ``10`` and ``0`` respectively.
+
 ``--thumbnail-width INTEGER`` and ``--thumbnail-height INTEGER``
    Set the maximum embedded thumbnail dimensions.
 

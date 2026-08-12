@@ -96,11 +96,12 @@ Add ``--name`` to generate concise descriptive names with a multimodal LLM:
    imcluster photos/ --name --llm gpt-5.6-luna
 
 For each cluster, imcluster chooses a cosine medoid and then diverse examples
-using farthest-first traversal. By default, no images from outside the cluster
-are sent and the prompt only describes the in-cluster examples. The Python API
-can request nearby outside images as contrasting examples by setting
-``out_group_size`` above zero. Only JPEG thumbnails already stored in the cache
-are sent to the LLM; source image files are not included in the prompt.
+using farthest-first traversal. ``--in-group-size`` controls the maximum number
+of these examples and defaults to ``10``. By default, no images from outside
+the cluster are sent and the prompt only describes the in-cluster examples.
+Set ``--out-group-size`` above zero to include nearby outside images as
+contrasting examples. Only JPEG thumbnails already stored in the cache are
+sent to the LLM; source image files are not included in the prompt.
 
 Names are stored in an algorithm-specific cache column and appear in the
 gallery sidebar and headings. Numeric cluster assignments remain unchanged,

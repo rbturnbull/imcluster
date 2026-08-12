@@ -223,9 +223,11 @@ Name clusters with a multimodal language model:
 
 Cluster naming sends representative cached thumbnails—not the source image
 files—to the configured model. It does not send out-of-cluster examples by
-default. The generated names are stored in the cache and displayed in the
-gallery while the underlying numeric cluster IDs remain available for
-evaluation and reuse. ``--llm-temperature`` controls sampling;
+default. ``--in-group-size`` controls the in-cluster examples and defaults to
+10; ``--out-group-size`` controls contrasting examples and defaults to 0. The
+generated names are stored in the cache and displayed in the gallery while the
+underlying numeric cluster IDs remain available for evaluation and reuse.
+``--llm-temperature`` controls sampling;
 ``--llm-api-key`` can pass a key directly, although a provider environment
 variable is safer than exposing a secret in shell history.
 
